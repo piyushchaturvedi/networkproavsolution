@@ -1,0 +1,223 @@
+<%- include('_header', { pageTitle: product.name, activePage: 'products' }) %>
+
+ <section class="product-detail py-5">
+  <div class="container">
+    <div class="row align-items-start">
+      <!-- Left Column: Product Image -->
+      <div class="col-md-5 text-center mb-4 mb-md-0">
+        <img src="<%= product.image %>" alt="<%= product.name %>" class="img-fluid rounded shadow-sm" style="max-height: 400px; object-fit: contain;">
+      </div>
+
+      <!-- Right Column: Product Info -->
+      <div class="col-md-7">
+        <h2 class="mb-3"><%= product.name %></h2>
+        <p class="price mb-2">
+          <span class="text-muted text-decoration-line-through me-2">$<%= product.oldPrice.toFixed(2) %></span>
+          <span class="fw-bold text-danger">$<%= product.price.toFixed(2) %></span>
+        </p>
+
+        <p class="short-desc mb-3"><%= product.shortDesc %></p>
+        <% product.longDesc.forEach(paragraph => { %>
+            <p class="text-secondary"><%= paragraph %></p>
+        <% }); %>
+
+        <button class="btn btn-success w-100 mt-3" id="addToCartBtn" data-product-id="<%= product.id %>">
+          <i class="bi bi-cart-plus"></i> ADD TO CART
+        </button>
+        <div id="add-to-cart-message" class="mt-2 text-success"></div>
+
+        <ul class="list-unstyled mt-4">
+          <li><strong>Brand:</strong> <%= product.brand %></li>
+          <li><strong>Platform:</strong> <%= product.platform %></li>
+          <li><strong>Delivery:</strong> <%= product.delivery %></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Related Products -->
+<section class="related-products py-5">
+  <div class="container">
+    <h3 class="mb-4 text-center fw-bold">Related Products</h3>
+
+    <% if (relatedProducts && relatedProducts.length > 0) { %>
+      <div class="row justify-content-center g-4">
+        <% relatedProducts.forEach(rp => { %>
+          <div class="col-12 col-md-4 col-lg-3 d-flex">
+            <div class="card h-100 w-100 text-center shadow-sm border-0 d-flex flex-column justify-content-between">
+              <a href="/product/<%= rp.id %>" class="text-decoration-none text-dark">
+                
+                <!-- Product Image -->
+                <div class="p-3 bg-white d-flex align-items-center justify-content-center" 
+                     style="height:220px; overflow:hidden; border-radius:8px;">
+                  <img src="<%= rp.image %>" 
+                       alt="<%= rp.name %>" 
+                       class="img-fluid" 
+                       style="max-height:100%; width:auto; object-fit:contain;">
+                </div>
+
+                <!-- Product Info -->
+                <div class="card-body px-3 pb-3">
+
+                  <!-- ✅ FIX: Multi-line wrapping + ellipsis -->
+                  <h6 class="card-title product-name mb-2" title="<%= rp.name %>">
+                    <%= rp.name %>
+                  </h6>
+
+                  <!-- Rating -->
+                  <div class="text-warning mb-2">
+                    <% for (let i = 0; i < Math.floor(rp.rating); i++) { %>⭐<% } %>
+                    <% if (rp.rating % 1 !== 0) { %>½<% } %>
+                  </div>
+
+                  <p class="fw-bold text-danger mb-0">$<%= rp.price.toFixed(2) %></p>
+                </div>
+              </a>
+            </div>
+          </div>
+        <% }); %>
+      </div>
+    <% } else { %>
+      <p class="text-center text-muted mt-4">No related products found.</p>
+    <% } %>
+  </div>
+</section>
+
+
+
+  <!-- Include PayPal SDK (place this before _footer.ejs so main.js runs after) -->
+  <script src="https://www.paypal.com/sdk/js?client-id=<%= settings.paypalClientId %>&currency=USD"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const addToCartBtn = document.getElementById('addToCartBtn');
+        const messageDiv = document.getElementById('add-to-cart-message');
+        const paypalContainer = document.getElementById('paypal-button-container');
+        const loadingMessage = document.getElementById('paypal-loading-message');
+        const paypalClientId = '<%= settings.paypalClientId %>';
+
+        // Check if PayPal SDK is loaded and client ID is valid
+        if (!paypalClientId || paypalClientId.includes('YOUR_PAYPAL_CLIENT_ID')) {
+             console.error('PayPal Client ID is not configured. Please set it in admin settings.');
+             if (paypalContainer) {
+                paypalContainer.innerHTML = '<p style="color: red; text-align: center;">PayPal is not configured. Please contact support.</p>';
+                if (loadingMessage) loadingMessage.style.display = 'none';
+            }
+            // No need to return here, as button might not be present if cart is empty.
+        }
+
+
+        // Function to render PayPal buttons, now called after a short delay to ensure SDK is ready
+        const renderPayPalButtons = () => {
+            if (typeof paypal === 'undefined' || !paypal.Buttons) {
+                console.warn('PayPal SDK not yet available, retrying...');
+                setTimeout(renderPayPalButtons, 200);
+                return;
+            }
+            
+            console.log('PayPal SDK is available. Attempting to render buttons...');
+            if (loadingMessage) loadingMessage.style.display = 'none';
+
+            try {
+                paypal.Buttons({
+                    createOrder: async function(data, actions) {
+                        const form = document.getElementById('customer-details-form');
+                        if (form && !form.checkValidity()) { // Check form validity only if form exists
+                            form.reportValidity();
+                            console.error('Customer details form not valid.');
+                            alert('Please fill in all required customer details before proceeding.');
+                            return actions.reject(new Error('Customer details form not valid.'));
+                        }
+                        
+                        try {
+                            const customerDetails = form ? { // Only get details if form exists
+                                fullName: form.fullName.value, email: form.email.value, phone: form.phone.value,
+                                address: form.address.value, city: form.city.value, zipCode: form.zipCode.value, country: form.country.value
+                            } : {}; // Empty object if no form
+
+                            const saveDetailsResponse = await fetch('/checkout/save-details', {
+                                method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(customerDetails)
+                            });
+                            if (!saveDetailsResponse.ok) { throw new Error('Failed to save customer details on server.'); }
+
+                            const response = await fetch('/api/orders', {
+                                method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ /* Cart data is in session */ }),
+                            });
+                            if (!response.ok) { const errorData = await response.json(); throw new Error(errorData.error || 'Failed to create PayPal order on server.'); }
+                            const order = await response.json();
+                            console.log('PayPal Order ID created:', order.orderID);
+                            return order.orderID;
+                        } catch (error) {
+                            console.error('Error in PayPal createOrder:', error);
+                            alert('Could not set up PayPal transaction. Please check your details and try again.');
+                            return actions.reject(error);
+                        }
+                    },
+                    onApprove: async function(data, actions) {
+                        console.log('PayPal payment approved, attempting to capture...', data);
+                        try {
+                            const response = await fetch(`/api/orders/${data.orderID}/capture`, {
+                                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                            });
+                            if (!response.ok) { const errorData = await response.json(); throw new Error(errorData.error || 'Failed to capture PayPal order on server.'); }
+                            const orderData = await response.json();
+                            console.log('PayPal Capture result:', orderData);
+                            alert('Payment successful!');
+                            window.location.href = '/checkout/success';
+                        } catch (error) {
+                            console.error('Error capturing PayPal order:', error);
+                            alert('Payment could not be completed. Please try again.');
+                        }
+                    },
+                    onCancel: function (data) {
+                        console.log('Payment cancelled by user:', data);
+                        alert('Payment cancelled.');
+                        window.location.href = '/checkout/cancel';
+                    },
+                    onError: function (err) {
+                        console.error('An error occurred during the PayPal transaction:', err);
+                        alert('An error occurred with PayPal. Please try again or contact support.');
+                    }
+                }).render(paypalContainer);
+            } catch (renderError) {
+                console.error('Error during PayPal button rendering:', renderError);
+                if (paypalContainer) {
+                    paypalContainer.innerHTML = '<p style="color: red; text-align: center;">Failed to load payment buttons. Please try refreshing.</p>';
+                }
+            }
+        };
+
+
+        if (addToCartBtn) {
+            addToCartBtn.addEventListener('click', async () => {
+                const productId = addToCartBtn.dataset.productId;
+                try {
+                    const response = await fetch('/cart/add', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ productId: productId, quantity: 1 }),
+                    });
+                    const data = await response.json();
+                    if (response.ok) {
+                        messageDiv.textContent = data.message;
+                        messageDiv.style.color = 'green';
+                        messageDiv.style.display = 'block';
+                        setTimeout(() => { messageDiv.style.display = 'none'; }, 2000);
+                        window.location.reload(); 
+                    } else {
+                        messageDiv.textContent = data.message || `Error: ${response.statusText}`;
+                        messageDiv.style.color = 'red';
+                        messageDiv.style.display = 'block';
+                        console.error('Server error response:', data);
+                    }
+                } catch (error) {
+                    console.error('Error during Add to Cart fetch:', error);
+                    messageDiv.textContent = 'An error occurred during network request. Please try again.';
+                    messageDiv.style.color = 'red';
+                    messageDiv.style.display = 'block';
+                }
+            });
+        }
+    });
+  </script>
+<%- include('_footer') %>

@@ -1,0 +1,262 @@
+<%- include('_header', { pageTitle: pageTitle, activePage: 'admin' }) %>
+
+<style>
+  /* Admin Product Edit Form Styling */
+  .product-edit-form {
+    max-width: 800px;
+    margin: 40px auto;
+    padding: 30px;
+    background-color: #fff;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    border-radius: 8px;
+  }
+  .product-edit-form h1 {
+    text-align: center;
+    margin-bottom: 30px;
+    color: #333;
+  }
+  .product-edit-form label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: bold;
+    color: #555;
+  }
+  .product-edit-form input[type="text"],
+  .product-edit-form input[type="number"],
+  .product-edit-form textarea,
+  .product-edit-form select,
+  .product-edit-form input[type="file"] {
+    width: calc(100% - 22px);
+    padding: 10px;
+    margin-bottom: 20px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 1rem;
+  }
+  .product-edit-form textarea {
+    resize: vertical;
+    min-height: 120px;
+  }
+  .product-edit-form button[type="submit"] {
+    display: block;
+    width: 100%;
+    padding: 12px 20px;
+    background-color: #28a745;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+  }
+  .product-edit-form button[type="submit"]:hover {
+    background-color: #218838;
+  }
+  .form-group {
+    margin-bottom: 15px;
+  }
+  /* Responsive */
+  @media (max-width: 600px) {
+    .product-edit-form {
+      margin: 20px auto;
+      padding: 15px;
+    }
+  }
+  .product-edit-form .image-preview {
+    max-width: 150px;
+    height: auto;
+    display: block;
+    margin-top: 10px;
+    margin-bottom: 20px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 5px;
+  }
+  .image-options {
+    margin-bottom: 15px;
+    border: 1px solid #eee;
+    padding: 15px;
+    border-radius: 5px;
+    background-color: #fcfcfc;
+  }
+  .image-options > div {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+  .image-options > div:last-child {
+    margin-bottom: 0;
+  }
+  .image-options label {
+    margin-bottom: 0;
+    font-weight: normal;
+    margin-right: 10px;
+  }
+  .image-options input[type="radio"] {
+    width: auto;
+    margin-right: 5px;
+    margin-bottom: 0;
+    flex-shrink: 0;
+  }
+  .image-options input[type="text"],
+  .image-options input[type="file"] {
+    flex-grow: 1;
+    margin-bottom: 0;
+  }
+  .image-input-group {
+    margin-top: 10px;
+    padding-left: 25px;
+    width: 100%;
+  }
+  .form-check {
+    margin-bottom: 15px;
+  }
+</style>
+
+<div class="product-edit-form">
+  <h1>Edit Product: <%= product.name %></h1>
+
+  <% if (message) { %>
+    <p class="message"><%= message %></p>
+  <% } %>
+  <% if (error) { %>
+    <p class="error"><%= error %></p>
+  <% } %>
+
+  <form action="/admin/product/update/<%= product.id %>" method="POST" enctype="multipart/form-data">
+
+    <div class="form-group">
+      <label for="name">Product Name:</label>
+      <input type="text" id="name" name="name" value="<%= product.name %>" required>
+    </div>
+
+    <div class="form-group">
+      <label for="category">Category:</label>
+      <select id="category" name="category" required>
+        <% categories.forEach(cat => { %>
+          <option value="<%= cat.name %>" <%= product.category === cat.name ? 'selected' : '' %>><%= cat.name %></option>
+        <% }); %>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label for="oldPrice">Old Price ($):</label>
+      <input type="number" id="oldPrice" name="oldPrice" value="<%= product.oldPrice %>" step="0.01" required>
+    </div>
+
+    <div class="form-group">
+      <label for="price">Current Price ($):</label>
+      <input type="number" id="price" name="price" value="<%= product.price %>" step="0.01" required>
+    </div>
+
+    <div class="form-group">
+      <label for="savePercent">Save Percent (%):</label>
+      <input type="number" id="savePercent" name="savePercent" value="<%= product.savePercent %>" required>
+    </div>
+
+    <div class="form-group">
+      <label for="rating">Rating (0-5):</label>
+      <input type="number" id="rating" name="rating" min="0" max="5" step="0.1" value="<%= product.rating %>">
+    </div>
+
+    <!-- ✅ Added Featured & Loved Product Options -->
+    <!-- <div class="form-group">
+      <label>Product Type:</label>
+      <div class="form-check">
+        <input type="checkbox" id="featured" name="isFeatured" value="true" <%= product.isFeatured ? 'checked' : '' %>>
+        <label for="featured">Featured Product</label>
+      </div>
+      <div class="form-check">
+        <input type="checkbox" id="loved" name="isLoved" value="true" <%= product.isLoved ? 'checked' : '' %>>
+        <label for="loved">Most Loved Product</label>
+      </div>
+    </div> -->
+
+    <div class="form-group">
+      <label>Current Image:</label>
+      <img src="<%= product.image %>" alt="Current Product Image" class="image-preview">
+      <p><small>Current Image URL/Path: <%= product.image %></small></p>
+    </div>
+
+    <div class="form-group">
+      <label>Change Image:</label>
+      <div class="image-options">
+        <div>
+          <input type="radio" id="imageOptionUrl" name="image_change_option" value="url" checked>
+          <label for="imageOptionUrl">Use Image URL:</label>
+        </div>
+        <div class="image-input-group" id="imageUrlGroup">
+          <input type="text" id="image_url_option" name="image_url_option" value="<%= product.image %>">
+        </div>
+      </div>
+      <div class="image-options">
+        <div>
+          <input type="radio" id="imageOptionUpload" name="image_change_option" value="upload">
+          <label for="imageOptionUpload">Upload New Image:</label>
+        </div>
+        <div class="image-input-group" id="imageUploadGroup">
+          <input type="file" id="productImage" name="productImage" accept="image/*">
+        </div>
+      </div>
+      <small>Select one option to change the image. Uploading a new image will override the URL.</small>
+    </div>
+
+    <div class="form-group">
+      <label for="shortDesc">Short Description:</label>
+      <textarea id="shortDesc" name="shortDesc" required><%= product.shortDesc %></textarea>
+    </div>
+
+    <div class="form-group">
+      <label for="longDesc">Long Description:</label>
+      <textarea id="longDesc" name="longDesc" required><%= product.longDesc.join('\n') %></textarea>
+    </div>
+
+    <div class="form-group">
+      <label for="brand">Brand:</label>
+      <input type="text" id="brand" name="brand" value="<%= product.brand %>" required>
+    </div>
+
+    <div class="form-group">
+      <label for="platform">Platform:</label>
+      <input type="text" id="platform" name="platform" value="<%= product.platform %>" required>
+    </div>
+
+    <div class="form-group">
+      <label for="delivery">Delivery:</label>
+      <input type="text" id="delivery" name="delivery" value="<%= product.delivery %>" required>
+    </div>
+
+    <button type="submit">Update Product</button>
+  </form>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const imageUrlRadio = document.getElementById('imageOptionUrl');
+    const imageUploadRadio = document.getElementById('imageOptionUpload');
+    const imageUrlGroup = document.getElementById('imageUrlGroup');
+    const imageUploadGroup = document.getElementById('imageUploadGroup');
+    const imageUrlInput = document.getElementById('image_url_option');
+    const imageUploadInput = document.getElementById('productImage');
+
+    function toggleImageInputs() {
+      if (imageUrlRadio.checked) {
+        imageUrlGroup.style.display = 'block';
+        imageUploadGroup.style.display = 'none';
+        imageUrlInput.setAttribute('required', 'required');
+        imageUploadInput.removeAttribute('required');
+      } else {
+        imageUrlGroup.style.display = 'none';
+        imageUploadGroup.style.display = 'block';
+        imageUrlInput.removeAttribute('required');
+        imageUploadInput.setAttribute('required', 'required');
+      }
+    }
+
+    imageUrlRadio.addEventListener('change', toggleImageInputs);
+    imageUploadRadio.addEventListener('change', toggleImageInputs);
+    toggleImageInputs();
+  });
+</script>
+
+<%- include('_footer') %>

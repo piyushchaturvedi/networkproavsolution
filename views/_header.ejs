@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title><%= pageTitle %></title>
+  <link rel="stylesheet" href="/css/home.css" />
+  <link rel="stylesheet" href="/css/header.css" />
+  <link rel="stylesheet" href="/css/all-product.css" />
+  <link rel="stylesheet" href="/css/login.css" />
+  <link rel="stylesheet" href="/css/details.css" />
+  <link rel="stylesheet" href="/css/contact.css" />
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Font Awesome for icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;800&display=swap" rel="stylesheet" />
+
+  <!-- Dynamic SEO Meta Tags -->
+  <meta name="description" content="<%= settings.metaDescription %>" />
+  <meta name="keywords" content="<%= settings.metaKeywords %>" />
+  <meta name="author" content="CybersafeTrust" />
+  <meta name="robots" content="index, follow" />
+
+  <!-- Open Graph (for social media) - Can also be dynamic if needed -->
+  <meta property="og:title" content="<%= settings.metaTitle %>" />
+  <meta property="og:description" content="<%= settings.metaDescription %>" />
+  <meta property="og:image" content="https://example.com/images/antivirus-banner.jpg" />
+  <meta property="og:url" content="https://cybersafetrust.com/" />
+  <meta property="og:type" content="website" />
+
+  <!-- Twitter Cards - Can also be dynamic if needed -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="<%= settings.metaTitle %>" />
+  <meta name="twitter:description" content="<%= settings.metaDescription %>" />
+  <meta name="twitter:image" content="https://example.com/images/twitter-banner.jpg" />
+  <link rel="icon" type="image/png" href="/images/favicon.png">
+  <link rel="canonical" href="https://cybersafetrust.com/">
+
+
+</head>
+
+
+<body>
+  
+  <header class="new-header light-theme-header shadow-sm">
+    <div class="container-fluid py-2 border-bottom">
+      <div class="row align-items-center justify-content-between">
+
+        <!-- 🔹 Logo (Left) -->
+        <div class="col-12 col-md-4 text-center text-md-start mb-2 mb-md-0">
+          <% if (settings.mainLogoUrl) { %>
+          <a href="/" class="logo-link d-inline-block">
+            <img src="<%= settings.mainLogoUrl %>" alt="NetworkProAVSolution Logo" class="header-logo-img">
+          </a>
+          <% } else { %>
+          <a href="/" class="logo-text fw-bold fs-4">NetworkProAVSolution</a>
+          <% } %>
+        </div>
+
+        <div class="col-12 col-md-4 text-center text-md-center">
+          <div class="products_search_main d-inline-flex align-items-center">
+            <input type="text" class="products_search_header" name="search" placeholder="Search Products Here..." />
+            <button type="submit" class="products_search_submit_btn">Search</button>
+          </div>
+        </div>
+
+        <!-- 🔹 Phone + Cart (Right) -->
+        <!-- <div class="col-12 col-md-8 text-center text-md-end">
+        <div class="d-inline-flex align-items-center gap-3">
+          
+          <a href="tel:<%= settings.homePhoneNumber %>" class="text-dark text-decoration-none fw-semibold">
+            <i class="fa fa-phone text-success me-2"></i>
+            <%= settings.homePhoneNumber %>
+          </a>
+
+         
+          <a href="/cart" class="text-dark text-decoration-none position-relative fw-semibold">
+            <i class="fa fa-shopping-cart fa-lg"></i>
+            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+              <%= cartTotalItems %>
+            </span>
+            <span class="ms-2">$<%= cartTotalPrice %></span>
+          </a>
+        </div>
+      </div> -->
+
+        <div class="col-12 col-md-4 text-center text-md-end">
+          <div class="header_cart_help d-inline-flex align-items-center gap-5">
+
+            <!-- Support (replaces Phone) -->
+            <div id="supportBtn" class="text-dark text-decoration-none fw-semibold header-support d-flex align-items-center" style="cursor:pointer;">
+              <!-- <i class="fa-solid fa-headset text-primary me-2"></i> -->
+               <img src="/image/24-hours-support.png" />
+               <div class="live_supports">
+                <span>Live Support</span>
+                <p class="click_here">Click Here</p>
+               </div>
+              
+            </div>
+
+            <!-- Cart -->
+            <a href="/cart" class="text-dark text-decoration-none position-relative fw-semibold">
+              <i class="fa fa-shopping-cart fa-lg"></i>
+              <span class="badge rounded-pill bg-danger">
+                <%= cartTotalItems %>
+              </span>
+              <span class="ms-2">$<%= cartTotalPrice %></span>
+            </a>
+
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- 🔹 Navigation Menu -->
+    <!-- === MENU BAR SECTION === -->
+    <div class="menu-bar-bg">
+      <nav class="navbar navbar-expand-lg navbar-light py-2 custom-menu-bg">
+        <div class="container justify-content-center custom-menu-bg">
+          <!-- Mobile Toggle -->
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainMenu">
+            <span class="navbar-toggler-icon"></span>
+          </button>
+
+          <div class="collapse navbar-collapse justify-content-center" id="mainMenu">
+            <ul class="navbar-nav gap-3 text-uppercase fw-semibold">
+
+              <!-- Static Links -->
+              <li class="nav-item">
+                <a href="/" class="nav-link <%= activePage === 'home' ? 'active text-success' : '' %>">Home</a>
+              </li>
+
+              <!-- Dynamic Header Pages -->
+              <% if (headerPages && headerPages.length > 0) { %>
+              <% headerPages.forEach(page => { %>
+              <li class="nav-item">
+                <a href="/page/<%= page.slug %>"
+                  class="nav-link <%= activePage === page.slug ? 'active text-success' : '' %>">
+                  <%= page.title.toUpperCase() %>
+                </a>
+              </li>
+              <% }); %>
+              <% } %>
+
+              <!-- Category Dropdown -->
+              <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="categoryDropdown" role="button"
+                  data-bs-toggle="dropdown" aria-expanded="false">
+                  Category
+                </a>
+                <ul class="dropdown-menu">
+                  <li><a class="dropdown-item" href="/products">All Products</a></li>
+                  <li><a class="dropdown-item" href="/products/norton">Norton Antivirus</a></li>
+                  <li><a class="dropdown-item" href="/products/mcafee">McAfee Antivirus</a></li>
+                  <li><a class="dropdown-item" href="/products/avast">Avast Antivirus</a></li>
+                  <li><a class="dropdown-item" href="/products/bitdefender">Bitdefender Antivirus</a></li>
+                  <li><a class="dropdown-item" href="/products/avg">AVG Antivirus</a></li>
+                  <li><a class="dropdown-item" href="/products/watchdog">Watchdog Antimalware</a></li>
+                </ul>
+              </li>
+
+              <!-- Contact -->
+              <li class="nav-item">
+                <a href="/contact"
+                  class="nav-link <%= activePage === 'contact' ? 'active text-success' : '' %>">Contact</a>
+              </li>
+
+              <!-- Admin Links -->
+              <% if (user && user.role === 'admin') { %>
+              <li class="nav-item"><a href="/admin"
+                  class="nav-link <%= activePage === 'admin' ? 'active text-success' : '' %>">Product List</a></li>
+              <li class="nav-item"><a href="/admin/product/add"
+                  class="nav-link <%= activePage === 'add-product' ? 'active text-success' : '' %>">Add Product</a></li>
+              <li class="nav-item"><a href="/admin/users"
+                  class="nav-link <%= activePage === 'users' ? 'active text-success' : '' %>">Users</a></li>
+              <li class="nav-item"><a href="/admin/orders"
+                  class="nav-link <%= activePage === 'orders' ? 'active text-success' : '' %>">Orders</a></li>
+              <li class="nav-item"><a href="/admin/testimonials"
+                  class="nav-link <%= activePage === 'testimonials' ? 'active text-success' : '' %>">Testimonials</a>
+              </li>
+              <li class="nav-item"><a href="/admin/pages"
+                  class="nav-link <%= activePage === 'pages' ? 'active text-success' : '' %>">CMS Pages</a></li>
+              <li class="nav-item"><a href="/admin/contact-messages"
+                  class="nav-link <%= activePage === 'contact-messages' ? 'active text-success' : '' %>">Messages</a>
+              </li>
+              <li class="nav-item"><a href="/admin/settings"
+                  class="nav-link <%= activePage === 'settings' ? 'active text-success' : '' %>">Settings</a></li>
+              <% } %>
+
+              <!-- Account Dropdown -->
+              <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="accountDropdown" role="button"
+                  data-bs-toggle="dropdown" aria-expanded="false">
+                  Account
+                </a>
+                <ul class="dropdown-menu">
+                  <% if (user) { %>
+                  <li><a class="dropdown-item" href="#">My Account (<%= user.username %>)</a></li>
+                  <li><a class="dropdown-item" href="/admin/logout">Logout</a></li>
+                  <% } else { %>
+                  <li><a class="dropdown-item" href="/login">Login</a></li>
+                  <% } %>
+                </ul>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </nav>
+    </div>
+
+  </header>
+   <script type="text/javascript">
+   
+   var Tawk_API = Tawk_API || {},
+     Tawk_LoadStart = new Date();
+   (function () {
+     var s1 = document.createElement("script"),
+       s0 = document.getElementsByTagName("script")[0];
+     s1.async = true;
+     s1.src = 'https://embed.tawk.to/685c654671a033190a6218a0/1iuken7h4';
+     s1.charset = 'UTF-8';
+     s1.setAttribute('crossorigin', '*');
+     s0.parentNode.insertBefore(s1, s0);
+   })();
+
+   // Hide Tawk widget after it loads
+  //  var Tawk_API = Tawk_API || {};
+  //  Tawk_API.onLoad = function () {
+  //    // Hide the widget when it's ready
+  //    if (Tawk_API.hideWidget) {
+  //      Tawk_API.hideWidget();
+  //    }
+  //  };
+
+   // Handle button click to show chat
+   document.addEventListener("DOMContentLoaded", function () {
+     const supportBtn = document.getElementById("supportBtn");
+
+     if (supportBtn) {
+       supportBtn.addEventListener("click", function () {
+         if (typeof Tawk_API !== "undefined" && Tawk_API.maximize) {
+           Tawk_API.maximize(); // Open chat popup
+         } else {
+           alert("Chat is still loading. Please try again in a moment.");
+         }
+       });
+     }
+   });
+ </script>
+  <!-- Bootstrap JS Bundle -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>

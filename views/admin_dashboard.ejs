@@ -1,0 +1,175 @@
+<%- include('_header', { pageTitle: pageTitle, activePage: 'admin' }) %>
+
+<style>
+  /* Basic Admin Dashboard Styling */
+  .admin-dashboard {
+    max-width: 1200px;
+    margin: 40px auto;
+    padding: 20px;
+    background-color: #fff;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    border-radius: 8px;
+  }
+
+  .admin-dashboard h1 {
+    text-align: center;
+    margin-bottom: 30px;
+    color: #333;
+  }
+
+  .admin-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+  }
+
+  .admin-table th, .admin-table td {
+    border: 1px solid #ddd;
+    padding: 12px;
+    text-align: left;
+    vertical-align: middle;
+  }
+
+  .admin-table th {
+    background-color: #f2f2f2;
+    font-weight: bold;
+  }
+
+  .admin-table tbody tr:nth-child(even) {
+    background-color: #f9f9f9;
+  }
+
+  .admin-table tbody tr:hover {
+    background-color: #f1f1f1;
+  }
+
+  .admin-table .product-img {
+    width: 60px;
+    height: auto;
+    border-radius: 4px;
+  }
+
+  .admin-table .action-links a {
+    display: inline-block;
+    padding: 6px 12px;
+    margin-right: 8px;
+    border-radius: 5px;
+    text-decoration: none;
+    font-weight: bold;
+    transition: background-color 0.2s ease;
+  }
+
+  .admin-table .action-links .edit-link {
+    background-color: #007bff;
+    color: white;
+  }
+
+  .admin-table .action-links .edit-link:hover {
+    background-color: #0056b3;
+  }
+
+  .admin-table .action-links .delete-link {
+    background-color: #dc3545;
+    color: white;
+  }
+
+  .admin-table .action-links .delete-link:hover {
+    background-color: #bd2130;
+  }
+
+  /* Responsive Table */
+  @media (max-width: 768px) {
+    .admin-dashboard {
+      margin: 20px auto;
+      padding: 10px;
+    }
+    .admin-table, .admin-table thead, .admin-table tbody, .admin-table th, .admin-table td, .admin-table tr {
+      display: block;
+    }
+    .admin-table thead tr {
+      position: absolute;
+      top: -9999px;
+      left: -9999px;
+    }
+    .admin-table tr {
+      margin: 0 0 1rem 0;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 10px;
+    }
+    .admin-table td {
+      border: none;
+      border-bottom: 1px solid #eee;
+      position: relative;
+      padding-left: 50%;
+      text-align: right;
+    }
+    .admin-table td:before {
+      position: absolute;
+      top: 12px;
+      left: 6px;
+      width: 45%;
+      padding-right: 10px;
+      white-space: nowrap;
+      content: attr(data-label);
+      font-weight: bold;
+      text-align: left;
+    }
+    .admin-table td:last-child {
+      border-bottom: 0;
+    }
+    .admin-table .action-links {
+        text-align: right;
+    }
+  }
+
+  .message {
+      background-color: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+      padding: 10px 20px;
+      margin-bottom: 20px;
+      border-radius: 5px;
+      text-align: center;
+  }
+
+</style>
+
+<div class="admin-dashboard">
+  <h1>Product Management</h1>
+
+  <% if (typeof message !== 'undefined' && message) { %>
+    <p class="message"><%= message %></p>
+  <% } %>
+
+  <table class="admin-table">
+    <thead>
+      <tr>
+        <th>Image</th>
+        <th>ID</th>
+        <th>Name</th>
+        <th>Category</th>
+        <th>Price</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% products.forEach(product => { %>
+        <tr>
+          <td data-label="Image"><img src="<%= product.image %>" alt="<%= product.name %>" class="product-img"></td>
+          <td data-label="ID"><%= product.id %></td>
+          <td data-label="Name"><%= product.name %></td>
+          <td data-label="Category"><%= product.category %></td>
+          <td data-label="Price">$<%= product.price.toFixed(2) %></td>
+          <td data-label="Actions" class="action-links">
+            <a href="/admin/product/edit/<%= product.id %>" class="edit-link">Edit</a>
+            <!-- Implement delete functionality in a real app, perhaps with a POST request -->
+            <!-- <a href="#" class="delete-link">Delete</a> -->
+          </td>
+        </tr>
+      <% }); %>
+    </tbody>
+  </table>
+</div>
+
+<%- include('_footer') %>

@@ -1,0 +1,276 @@
+<%- include('_header', { pageTitle: pageTitle, activePage: 'home' }) %>
+<style>
+/* === PRODUCT CARD IMAGE FIX === */
+.product-card img {
+  width: 100% !important;
+  height: 240px !important;  /* Adjust for desktop */
+  object-fit: contain !important;
+  object-position: center !important;
+  background-color: #fff !important;
+  border-radius: 10px !important;
+  padding: 0 !important;
+  transition: transform 0.3s ease !important;
+}
+
+/* Hover zoom effect */
+.product-card img:hover {
+  transform: scale(1.05) !important;
+}
+
+/* === MOBILE VIEW === */
+@media (max-width: 576px) {
+  .product-card img {
+    height: 180px !important;  /* Slightly smaller for phones */
+    object-fit: contain !important;
+  }
+
+  .product-card {
+    margin: 0 auto !important;
+    max-width: 95% !important;
+  }
+
+  .card-body {
+    padding: 10px !important;
+  }
+}
+
+</style>
+<!-- Antivirus Section -->
+<section class="Antivirus">
+  <div class="Antivirus-text">
+    <p><%= settings.homeSubtitle %></p>
+    <h1>
+      <% const lines = settings.homeHeading.split('\n'); %>
+      <% lines.forEach(line => { %>
+      <%= line %><br>
+      <% }); %>
+    </h1>
+    <p class="description"><%= settings.homeDescription %></p>
+    <a href="/products" class="btn btnNew"><button class="add-to-cart-button"
+        id="addToCartBtn"><%= settings.homeButtonText %></button></a>
+  </div>
+  <div class="antivirus-slider">
+    <div class="slides">
+      <img src="/uploads/campaign_banners/mcafee.png" alt="mcafee Antivirus" class="active">
+      <img src="/uploads/campaign_banners/Norton.png" alt="Norton Antivirus">
+      <img src="/uploads/campaign_banners/watchdog.png" alt="watchdog Antivirus">
+      <img src="/uploads/campaign_banners/Bitdefender.png" alt="Bitdefender Antivirus">
+      <img src="/uploads/campaign_banners/AVG.png" alt="AVG Antivirus">
+    </div>
+  </div>
+
+</section>
+
+<p class="welcome_msg_description"><span>Welcome to NetworkproAV Solution — </span> your reliable online destination for purchasing antivirus software from trusted third-party authorized resellers in the United States and Canada.We are an independent e-commerce platform and certified reseller under various official reseller programs, offering genuine and verified security products to protect your digital world. Every product we sell is sourced from reputable and authorized partners.At NetworkproAV Solution, we follow fair business practices, comply with all industry guidelines, and prioritize honest service and customer satisfaction. Shop with confidence, knowing you’re getting authentic software, secure transactions, and exceptional customer support — all in one place.</p>
+
+<!-- Campaign Banner -->
+<% if (settings.enableCampaignBanner) { %>
+<div class="shop shop_campaign">
+  <section class="deal-section">
+    <section class="campaign-banner"
+      style="background-color: <%= settings.campaignBannerBackgroundColor %>; color: <%= settings.campaignBannerTextColor %>;">
+      <div class="campaign-content">
+        <div class="campaign-text">
+          <h2><%= settings.campaignBannerHeading %></h2>
+          <p><%= settings.campaignBannerText %></p>
+          <a href="<%= settings.campaignBannerButtonLink %>" class="btn campaign-btn"
+          ><%= settings.campaignBannerButtonText %> <i class="fa fa-angle-right"></i></a>
+        </div>
+        <% if (settings.campaignBannerImageUrl) { %>
+        <div class="campaign-image">
+          <div class="campaign-slides">
+            <img src="/uploads/campaign_banners/offer-banner/McAFee.png" alt="McAfee Banner">
+            <img src="/uploads/campaign_banners/offer-banner/Watchdog.png" alt="Watchdog Banner">
+            <img src="/uploads/campaign_banners/offer-banner/Bitdefender.png" alt="Bitdefender Banner">
+            <img src="/uploads/campaign_banners/offer-banner/AVG_BANNER.png" alt="AVG Banner">
+            <img src="/uploads/campaign_banners/offer-banner/Norton.png" alt="Norton Banner">
+            <img src="/uploads/campaign_banners/offer-banner/Watchdog.png" alt="Watchdog Banner">
+          </div>
+        </div>
+        <% } %>
+      </div>
+    </section>
+</div>
+</section>
+<% } %>
+
+<div class="shop shop_sec_icons">
+  <section class="deal-section">
+    <!-- Features Section -->
+    <section class="features-section">
+      <div class="feature">
+        <img src="https://img.icons8.com/ios-filled/50/headset.png" alt="Support">
+        <p>24/7 Support</p>
+        <span>Get genuine antivirus protection with 24/7 expert support you can count on</span>
+      </div>
+      <div class="feature">
+        <img src="https://img.icons8.com/ios-filled/50/tag-window.png" alt="Price">
+        <p>Lowest Price</p>
+        <span>Save More, Stay Secure — Authorized Antivirus Software at the Lowest Price.</span>
+      </div>
+      <div class="feature">
+        <img src="https://img.icons8.com/ios-filled/50/bank-card-back-side.png" alt="Payment">
+        <p>Secure Payment</p>
+        <span>Your Safety Starts with Secure Payment and Ends with Trusted Protection.</span>
+      </div>
+      <div class="feature">
+        <img src="https://img.icons8.com/ios-filled/50/downloads.png" alt="Install">
+        <p>Easy Installation</p>
+        <span>Zero Hassle, Maximum Security. Quick installation with round-the-clock help.</span>
+      </div>
+    </section>
+</div>
+</div>
+
+
+<div class="main-featured-section">
+  <section class="featured-section">
+    <h2>Our Featured Products</h2>
+    <div class="underline"></div>
+
+    <div class="products">
+      <% featuredProducts.forEach(product => { %>
+      <div class="product-card">
+        <% if (product.isOnSale) { %>
+        <span class="badge">Sale!</span>
+        <% } %>
+        <a href="/product/<%= product.slug || product.id %>">
+          <img src="<%= product.image || '/image/default.png' %>" alt="<%= product.name %>">
+        </a>
+        <p class="brand"><%= product.brand || product.category %></p>
+        <h3><%= product.name %></h3>
+        <div class="stars">☆☆☆☆☆</div>
+        <p class="price">
+          <% if (product.oldPrice) { %>
+          <del>$<%= product.oldPrice %></del>
+          <% } %>
+          <span>$<%= product.price %></span>
+        </p>
+      </div>
+      <% }) %>
+    </div>
+  </section>
+</div>
+  <div class="shop">
+    <section class="deal-section">
+      <div class="deal-content">
+        <div class="deal-text">
+          <h3>Be prompt!</h3>
+          <h1>The Today's Deal!</h1>
+          <p>"Buy Next-Gen Antivirus Security At 50% Discount, Using the Promo Code <strong>WELCOME-9909</strong>"</p>
+          <a href="/products" class="btn">SHOP NOW →</a>
+        </div>
+        <div class="deal-image">
+          <a href="/products/mcafee" class="btn">
+            <img src="/image/McAfee-total-protection-1.png" alt="Woman pointing" />
+          </a>
+        </div>
+      </div>
+    </section>
+  </div>
+
+
+  <section class="featured-section">
+    <h2>Most Loved Products</h2>
+    <div class="underline"></div>
+
+    <div class="products">
+      <!-- Product 1 -->
+      <div class="product-card">
+        <span class="badge">Sale!</span>
+        <a href="/product/p1">
+          <img src="/image/Mcafee-livesafe.png" alt="Antivirus 1">
+        </a>
+        <p class="brand">Mcafee</p>
+        <h3>McAfee Antivirus Plus 1 Devices- Unlimited / 1-Year</h3>
+        <div class="stars">☆☆☆☆☆</div>
+        <p class="price"><del>$39.99</del> <span>$34.45</span></p>
+      </div>
+
+      <!-- Product 2 -->
+      <div class="product-card">
+        <span class="badge">Sale!</span>
+        <a href="/product/p2">
+          <img src="/image/McAfee-total-protection-1.png" alt="Antivirus 2">
+        </a>
+        <p class="brand">Mcafee</p>
+        <h3>McAfee Antivirus Plus 10-Devices- Unlimited / 5-Year</h3>
+        <div class="stars">☆☆☆☆☆</div>
+        <p class="price"><del>$79.99</del> <span>$59.99</span></p>
+      </div>
+
+      <!-- Product 3 -->
+      <div class="product-card">
+        <span class="badge">Sale!</span>
+        <a href="/product/p3">
+          <img src="/image/McAfee-total-protection-1.png" alt="Internet Security">
+        </a>
+        <p class="brand">Mcafee</p>
+        <h3>McAfee Internet Security 1 Device / 1 Year</h3>
+        <div class="stars">☆☆☆☆☆</div>
+        <p class="price"><del>$59.99</del> <span>$39.99</span></p>
+      </div>
+
+      <!-- Product 4 -->
+      <div class="product-card">
+        <span class="badge">Sale!</span>
+        <a href="/product/p4">
+          <img src="/image/McAfee-total-protection-1.png" alt="Total Protection">
+        </a>
+        <p class="brand">Mcafee</p>
+        <h3>McAfee Total Protection 5-Devices</h3>
+        <div class="stars">☆☆☆☆☆</div>
+        <p class="price"><del>$119.99</del> <span>$99.99</span></p>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- <div class="our">
+    <h1> OUR HAPPY CLIENTS </h1>
+    <div class="underline"></div>
+  </div> -->
+  <section class="testimonials">
+    <% if (testimonials && testimonials.length > 0) { %>
+    <% testimonials.forEach(testimonial => { %>
+    <div class="card">
+      <p>"<%= testimonial.quote %>"</p>
+      <div class="stars">
+        <% for (let i = 0; i < Math.floor(testimonial.rating); i++) { %>⭐<% } %>
+        <% if (testimonial.rating % 1 !== 0) { %><span class="half">½</span><% } %>
+      </div>
+      <div class="user">
+        <img src="<%= testimonial.userImage %>" alt="User: <%= testimonial.userName %>" />
+        <p><%= testimonial.userName %></p>
+      </div>
+    </div>
+    <% }); %>
+    <% } else { %>
+    <p style="text-align: center; width: 100%;">No testimonials to display yet.</p>
+    <% } %>
+  </section>
+
+  <script>
+    // 🟢 Antivirus Slider
+    let index = 0;
+    const slides = document.querySelector('.slides');
+    const total = document.querySelectorAll('.slides img').length;
+
+    setInterval(() => {
+      index = (index + 1) % total;
+      slides.style.transform = `translateX(-${index * 100}%)`;
+    }, 3000);
+
+
+    // 🟢 Campaign Slider
+    let campaignIndex = 0;
+    const campaignSlides = document.querySelector('.campaign-slides');
+    const totalCampaignSlides = document.querySelectorAll('.campaign-slides img').length;
+
+    setInterval(() => {
+      campaignIndex = (campaignIndex + 1) % totalCampaignSlides;
+      campaignSlides.style.transform = `translateX(-${campaignIndex * 100}%)`;
+    }, 3000);
+  </script>
+
+  <%- include('_footer') %>

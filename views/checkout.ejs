@@ -1,0 +1,311 @@
+<%- include('_header', { pageTitle: pageTitle, activePage: 'cart' }) %>
+
+<style>
+  /* Checkout Page Specific Styles */
+  .checkout-page-container {
+    max-width: 900px;
+    margin: 40px auto;
+    padding: 30px;
+    background-color: #fff;
+    box-shadow: 0 0 15px rgba(0,0,0,0.1);
+    border-radius: 8px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 30px;
+  }
+
+  .checkout-page-container h1 {
+    width: 100%;
+    text-align: center;
+    margin-bottom: 30px;
+    color: #333;
+  }
+
+  .customer-details-section, .order-summary-section {
+    flex: 1 1 45%; /* Approximately half width */
+    min-width: 300px;
+  }
+
+  .customer-details-section h2, .order-summary-section h2 {
+    font-size: 1.8rem;
+    margin-bottom: 20px;
+    color: #333;
+    border-bottom: 2px solid var(--primary-color); /* Dynamic color */
+    padding-bottom: 10px;
+  }
+
+  .customer-details-section form label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: bold;
+    color: #555;
+  }
+
+  .customer-details-section form input[type="text"],
+  .customer-details-section form input[type="email"],
+  .customer-details-section form input[type="tel"],
+  .customer-details-section form textarea {
+    width: calc(100% - 22px);
+    padding: 10px;
+    margin-bottom: 20px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 1rem;
+  }
+
+  .customer-details-section form textarea {
+    resize: vertical;
+    min-height: 80px;
+  }
+
+  .order-summary-items .summary-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px dashed #eee;
+    font-size: 1rem;
+  }
+
+  .order-summary-items .summary-item:last-child {
+    border-bottom: none;
+  }
+
+  .order-summary-total {
+    text-align: right;
+    font-size: 1.4rem;
+    font-weight: bold;
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 2px solid var(--primary-color); /* Dynamic color */
+  }
+
+  /* Styling for PayPal button container */
+  #paypal-button-container {
+      margin-top: 30px;
+      width: 100%; /* Ensure it takes full width of its container */
+      max-width: 300px; /* Limit max width for better appearance */
+      margin-left: auto;
+      margin-right: auto;
+      border: 2px solid var(--primary-color); /* Dynamic color */
+      padding: 10px; /* Add some padding */
+      border-radius: 5px; /* Rounded corners */
+      box-shadow: 0 4px 8px rgba(0, 123, 255, 0.2); /* Keep generic shadow or make dynamic via JS */
+      text-align: center; /* Center the buttons inside */
+      min-height: 50px; /* Ensure space for buttons even if not rendered */
+      display: flex; /* Use flex to center potential message */
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+  }
+
+  .payment-section {
+      margin-top: 30px;
+      text-align: center;
+      width: 100%;
+  }
+
+  .payment-section h2 {
+      font-size: 1.8rem;
+      margin-bottom: 20px;
+      color: #333;
+      border-bottom: 2px solid var(--primary-color); /* Dynamic color */
+      padding-bottom: 10px;
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .checkout-page-container {
+      flex-direction: column;
+      padding: 15px;
+      margin: 20px auto;
+    }
+    .customer-details-section, .order-summary-section {
+      min-width: unset;
+      width: 100%;
+    }
+  }
+</style>
+
+<div class="checkout-page-container">
+  <h1>Checkout</h1>
+
+  <div class="customer-details-section">
+    <h2>Customer Details</h2>
+    <form id="customer-details-form">
+      <label for="fullName">Full Name:</label>
+      <input type="text" id="fullName" name="fullName" value="<%= customer ? customer.fullName : '' %>" required>
+
+      <label for="email">Email:</label>
+      <input type="email" id="email" name="email" value="<%= customer ? customer.email : '' %>" required>
+
+      <label for="phone">Phone Number:</label>
+      <input type="tel" id="phone" name="phone" value="<%= customer ? customer.phone : '' %>" required>
+
+      <label for="address">Shipping Address:</label>
+      <textarea id="address" name="address" rows="3" required><%= customer ? customer.address : '' %></textarea>
+
+      <label for="city">City:</label>
+      <input type="text" id="city" name="city" value="<%= customer ? customer.city : '' %>" required>
+
+      <label for="zipCode">Zip Code:</label>
+      <input type="text" id="zipCode" name="zipCode" value="<%= customer ? customer.zipCode : '' %>" required>
+
+      <label for="country">Country:</label>
+      <input type="text" id="country" name="country" value="<%= customer ? customer.country : '' %>" required>
+    </form>
+  </div>
+
+  <div class="order-summary-section">
+    <h2>Order Summary</h2>
+    <div class="order-summary-items">
+      <% if (cart && cart.length > 0) { %>
+        <% cart.forEach(item => { %>
+          <div class="summary-item">
+            <span><%= item.name %> (x<%= item.quantity %>)</span>
+            <span>$<%= (item.price * item.quantity).toFixed(2) %></span>
+          </div>
+        <% }); %>
+      <% } else { %>
+        <p style="text-align: center;">Your cart is empty.</p>
+      <% } %>
+    </div>
+    <div class="order-summary-total">
+      Total: $<%= cartTotalPrice %>
+    </div>
+  </div>
+
+  <div class="payment-section">
+    <h2>Payment Information</h2>
+    <% if (cart && cart.length > 0) { %>
+      <div id="paypal-button-container">
+          <!-- PayPal buttons will be rendered here by the SDK -->
+          <p id="paypal-loading-message">Loading payment options...</p>
+      </div>
+    <% } else { %>
+      <p>No items in cart to checkout.</p>
+    <% } %>
+  </div>
+</div>
+
+<!-- Include PayPal SDK with dynamic Client ID -->
+<!-- Using 'defer' to ensure DOM is ready and client-side JS is parsed before SDK tries to render -->
+<script src="https://www.paypal.com/sdk/js?client-id=<%= settings.paypalClientId %>&currency=USD"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const cartHasItems = <%= cart && cart.length > 0 %>;
+        const paypalContainer = document.getElementById('paypal-button-container');
+        const loadingMessage = document.getElementById('paypal-loading-message');
+        const paypalClientId = '<%= settings.paypalClientId %>'; // Get client ID from EJS context
+
+        if (!cartHasItems) {
+            console.log('Cart is empty, PayPal buttons not rendered.');
+            if (paypalContainer) {
+                paypalContainer.innerHTML = '<p>No items in cart to checkout.</p>';
+            }
+            return; // Exit if no items in cart
+        }
+
+        // Check if PayPal SDK is loaded and client ID is valid
+        if (!paypalClientId || paypalClientId.includes('YOUR_PAYPAL_CLIENT_ID')) {
+             console.error('PayPal Client ID is not configured. Please set it in admin settings.');
+             if (paypalContainer) {
+                paypalContainer.innerHTML = '<p style="color: red; text-align: center;">PayPal is not configured. Please contact support.</p>';
+                loadingMessage.style.display = 'none';
+            }
+            return;
+        }
+
+
+        // Function to render PayPal buttons, now called after a short delay to ensure SDK is ready
+        // Or, more robustly, listen for paypal object to be available
+        const renderPayPalButtons = () => {
+            if (typeof paypal === 'undefined' || !paypal.Buttons) {
+                console.warn('PayPal SDK not yet available, retrying...');
+                setTimeout(renderPayPalButtons, 200); // Retry after 200ms
+                return;
+            }
+            
+            console.log('PayPal SDK is available. Attempting to render buttons...');
+            if (loadingMessage) loadingMessage.style.display = 'none'; // Hide loading message
+
+            try {
+                paypal.Buttons({
+                    // Optional: Customize button style if needed
+                    // style: {
+                    //     layout: 'vertical',
+                    //     color: 'gold',
+                    //     shape: 'rect',
+                    //     label: 'paypal'
+                    // },
+                    createOrder: async function(data, actions) {
+                        const form = document.getElementById('customer-details-form');
+                        if (!form.checkValidity()) {
+                            form.reportValidity();
+                            console.error('Customer details form not valid.');
+                            alert('Please fill in all required customer details before proceeding.');
+                            return actions.reject(new Error('Customer details form not valid.'));
+                        }
+                        
+                        try {
+                            const customerDetails = {
+                                fullName: form.fullName.value, email: form.email.value, phone: form.phone.value,
+                                address: form.address.value, city: form.city.value, zipCode: form.zipCode.value, country: form.country.value
+                            };
+                            const saveDetailsResponse = await fetch('/checkout/save-details', {
+                                method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(customerDetails)
+                            });
+                            if (!saveDetailsResponse.ok) { throw new Error('Failed to save customer details on server.'); }
+
+                            const response = await fetch('/api/orders', {
+                                method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ /* Cart data is in session */ }),
+                            });
+                            if (!response.ok) { const errorData = await response.json(); throw new Error(errorData.error || 'Failed to create PayPal order on server.'); }
+                            const order = await response.json();
+                            console.log('PayPal Order ID created:', order.orderID);
+                            return order.orderID;
+                        } catch (error) {
+                            console.error('Error in PayPal createOrder:', error);
+                            alert('Could not set up PayPal transaction. Please check your details and try again.');
+                            return actions.reject(error);
+                        }
+                    },
+                    onApprove: async function(data, actions) {
+                        console.log('PayPal payment approved, attempting to capture...', data);
+                        try {
+                            const response = await fetch(`/api/orders/${data.orderID}/capture`, {
+                                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                            });
+                            if (!response.ok) { const errorData = await response.json(); throw new Error(errorData.error || 'Failed to capture PayPal order on server.'); }
+                            const orderData = await response.json();
+                            console.log('PayPal Capture result:', orderData);
+                            alert('Payment successful!');
+                            window.location.href = '/checkout/success';
+                        } catch (error) {
+                            console.error('Error capturing PayPal order:', error);
+                            alert('Payment could not be completed. Please try again.');
+                        }
+                    },
+                    onCancel: function (data) {
+                        console.log('Payment cancelled by user:', data);
+                        alert('Payment cancelled.');
+                        window.location.href = '/checkout/cancel';
+                    },
+                    onError: function (err) {
+                        console.error('An error occurred during the PayPal transaction:', err);
+                        alert('An error occurred with PayPal. Please try again or contact support.');
+                    }
+                }).render(paypalContainer);
+            } catch (renderError) {
+                console.error('Error during PayPal button rendering:', renderError);
+                if (paypalContainer) {
+                    paypalContainer.innerHTML = '<p style="color: red; text-align: center;">Failed to load payment buttons. Please try refreshing.</p>';
+                }
+            }
+        };
+
+        // Start checking for PayPal SDK readiness
+        renderPayPalButtons();
+    });
+</script>
+
+<%- include('_footer') %>

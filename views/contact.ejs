@@ -1,0 +1,61 @@
+<%- include('_header', { pageTitle: pageTitle, activePage: 'contact' }) %>
+<style>
+  /* .supportBtnCnt img {
+    max-width: 81px !important;
+    width: 100%;
+    margin-right: 3px;
+} */
+
+.contact{
+  margin-top: 90px;
+  margin-left: 133px;
+}
+</style>
+  <section class="contact-section">
+    <div class="contact-container">
+      <div class="contact-left">
+        <h2>Contact Us</h2>
+        <hr />
+        <p><span class="icon">📍</span> <%= settings.contactAddress %></p>
+        <p><span class="icon">📧</span> <%= settings.contactEmail %></p>
+        <p><span class="icon">📞</span> <%= settings.contactPhone %></p>
+        <!-- <div class="col-12 col-md-4 text-center text-md-end">
+          <div class="header_cart_help d-inline-flex align-items-center gap-5"> -->
+            <div class="contact">
+            <!-- Support (replaces Phone) -->
+            <div id="supportBtn" class="text-dark text-decoration-none fw-semibold header-support d-flex align-items-center supportBtnCnt" style="cursor:pointer;">
+              <!-- <i class="fa-solid fa-headset text-primary me-2"></i> -->
+               <img src="/image/24-hours-support.png" />
+               <div class="live_supports">
+                <span>Live Support</span>
+                <p class="click_here">Click Here</p>
+               </div>
+              
+            </div>
+            </div>
+         <!-- </div>
+         </div> -->
+      </div>
+      <div class="contact-right">
+        <h2>Ask Your Queries</h2>
+        <% if (typeof message !== 'undefined' && message) { %>
+          <p style="color: green; text-align: center;"><%= message %></p>
+        <% } %>
+        <% if (typeof error !== 'undefined' && error) { %>
+          <p style="color: red; text-align: center;"><%= error %></p>
+        <% } %>
+        <form action="/contact" method="POST">
+          <input type="email" name="email" placeholder="Your Email" required />
+          <input type="text" name="subject" placeholder="Subject" required />
+          <textarea name="message" placeholder="Message" rows="5" required></textarea>
+          <button type="submit">SEND MESSAGE</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Chat bubble (design only) -->
+    <div class="chat-bubble">💬</div>
+    <div class="offline-text">We are offline now</div>
+  </section>
+
+<%- include('_footer') %>

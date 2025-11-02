@@ -1,0 +1,207 @@
+<%- include('_header', { pageTitle: pageTitle, activePage: 'testimonials' }) %>
+
+<style>
+  /* Styling similar to add testimonial form */
+  .edit-testimonial-form {
+    max-width: 800px;
+    margin: 40px auto;
+    padding: 30px;
+    background-color: #fff;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    border-radius: 8px;
+  }
+
+  .edit-testimonial-form h1 {
+    text-align: center;
+    margin-bottom: 30px;
+    color: #333;
+  }
+
+  .edit-testimonial-form label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: bold;
+    color: #555;
+  }
+
+  .edit-testimonial-form input[type="text"],
+  .edit-testimonial-form input[type="number"],
+  .edit-testimonial-form textarea,
+  .edit-testimonial-form input[type="file"] {
+    width: calc(100% - 22px);
+    padding: 10px;
+    margin-bottom: 20px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 1rem;
+  }
+
+  .edit-testimonial-form textarea {
+    resize: vertical;
+    min-height: 120px;
+  }
+
+  .edit-testimonial-form button[type="submit"] {
+    display: block;
+    width: 100%;
+    padding: 12px 20px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+  }
+
+  .edit-testimonial-form button[type="submit"]:hover {
+    background-color: #0056b3;
+  }
+
+  .form-group {
+    margin-bottom: 15px;
+  }
+
+  .user-image-preview {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    object-fit: cover;
+    display: block;
+    margin-top: 10px;
+    margin-bottom: 20px;
+    border: 1px solid #ddd;
+    padding: 2px;
+  }
+
+  /* Image upload/URL option specific styles */
+  .image-options {
+    margin-bottom: 15px;
+    border: 1px solid #eee;
+    padding: 15px;
+    border-radius: 5px;
+    background-color: #fcfcfc;
+  }
+  .image-options > div {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+  .image-options > div:last-child {
+    margin-bottom: 0;
+  }
+  .image-options label {
+    margin-bottom: 0;
+    font-weight: normal;
+    margin-right: 10px;
+  }
+  .image-options input[type="radio"] {
+    width: auto;
+    margin-right: 5px;
+    margin-bottom: 0;
+    flex-shrink: 0;
+  }
+  .image-options input[type="text"],
+  .image-options input[type="file"] {
+    flex-grow: 1;
+    margin-bottom: 0;
+  }
+  .image-input-group {
+    margin-top: 10px;
+    padding-left: 25px;
+    width: 100%;
+  }
+</style>
+
+<div class="edit-testimonial-form">
+  <h1>Edit Testimonial: <%= testimonial.userName %></h1>
+
+  <form action="/admin/testimonial/update/<%= testimonial._id %>" method="POST" enctype="multipart/form-data">
+    <div class="form-group">
+      <label for="userName">User Name:</label>
+      <input type="text" id="userName" name="userName" value="<%= testimonial.userName %>" required>
+    </div>
+
+    <div class="form-group">
+      <label for="quote">Quote:</label>
+      <textarea id="quote" name="quote" required><%= testimonial.quote %></textarea>
+    </div>
+
+    <div class="form-group">
+      <label for="rating">Rating (0-5):</label>
+      <input type="number" id="rating" name="rating" min="0" max="5" step="0.5" value="<%= testimonial.rating %>" required>
+    </div>
+
+    <div class="form-group">
+        <label>Current User Image:</label>
+        <img src="<%= testimonial.userImage %>" alt="Current User Image" class="user-image-preview">
+        <p><small>Current Image URL/Path: <%= testimonial.userImage %></small></p>
+    </div>
+
+    <div class="form-group">
+        <label>Change User Image:</label>
+        <div class="image-options">
+            <div>
+                <input type="radio" id="imageOptionUrl" name="userImage_option" value="url" <% if (!testimonial.userImage || testimonial.userImage.startsWith('http')) { %>checked<% } %>>
+                <label for="imageOptionUrl">Use Image URL:</label>
+            </div>
+            <div class="image-input-group" id="imageUrlGroup">
+                <input type="text" id="userImage_url_option" name="userImage_url_option" value="<%= testimonial.userImage %>" placeholder="Enter full image URL">
+            </div>
+        </div>
+        <div class="image-options">
+            <div>
+                <input type="radio" id="imageOptionUpload" name="userImage_option" value="upload" <% if (testimonial.userImage && testimonial.userImage.startsWith('/uploads/testimonials')) { %>checked<% } %>>
+                <label for="imageOptionUpload">Upload New Image:</label>
+            </div>
+            <div class="image-input-group" id="imageUploadGroup">
+                <input type="file" id="userImage" name="userImage" accept="image/*">
+            </div>
+        </div>
+        <small>Select one option to change the image. Uploading a new image will override the URL.</small>
+    </div>
+
+    <button type="submit">Update Testimonial</button>
+  </form>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const imageUrlRadio = document.getElementById('imageOptionUrl');
+    const imageUploadRadio = document.getElementById('imageOptionUpload');
+    const imageUrlGroup = document.getElementById('imageUrlGroup');
+    const imageUploadGroup = document.getElementById('imageUploadGroup');
+    const imageUrlInput = document.getElementById('userImage_url_option');
+    const imageUploadInput = document.getElementById('userImage');
+
+    function toggleImageInputs() {
+      if (imageUrlRadio.checked) {
+        imageUrlGroup.style.display = 'block';
+        imageUploadGroup.style.display = 'none';
+        imageUrlInput.setAttribute('required', 'required');
+        imageUploadInput.removeAttribute('required');
+        imageUploadInput.value = ''; // Clear file input
+      } else {
+        imageUrlGroup.style.display = 'none';
+        imageUploadGroup.style.display = 'block';
+        imageUrlInput.removeAttribute('required');
+        imageUrlInput.value = ''; // Clear URL input
+        imageUploadInput.setAttribute('required', 'required');
+      }
+    }
+
+    // Initial state based on existing image
+    if (imageUploadRadio.checked) { // If current image is an upload, select upload radio
+      toggleImageInputs();
+    } else { // Otherwise, assume URL or default, select URL radio
+      imageUrlRadio.checked = true;
+      toggleImageInputs();
+    }
+    
+    // Add event listeners to radio buttons
+    imageUrlRadio.addEventListener('change', toggleImageInputs);
+    imageUploadRadio.addEventListener('change', toggleImageInputs);
+  });
+</script>
+
+<%- include('_footer') %>

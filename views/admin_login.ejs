@@ -1,0 +1,94 @@
+<%- include('_header', { pageTitle: pageTitle, activePage: 'admin' }) %>
+
+<style>
+  /* Basic Login Form Styling (similar to your existing login.css but specific to admin) */
+  .admin-login-section {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: calc(100vh - 150px); /* Adjust based on header/footer height */
+    padding: 40px 20px;
+    background-color: #f5f0f1;
+  }
+
+  .admin-login-box {
+    background-color: white;
+    padding: 30px;
+    max-width: 400px;
+    width: 100%;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    border-radius: 8px;
+    text-align: center;
+  }
+
+  .admin-login-box h2 {
+    margin-bottom: 25px;
+    font-size: 28px;
+    color: #333;
+  }
+
+  .admin-login-box form label {
+    display: block;
+    margin-top: 15px;
+    margin-bottom: 8px;
+    color: #555;
+    font-weight: bold;
+    text-align: left;
+  }
+
+  .admin-login-box form input {
+    width: calc(100% - 22px); /* Account for padding */
+    padding: 12px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    margin-bottom: 20px;
+    font-size: 1rem;
+  }
+
+  .admin-login-box button[type="submit"] {
+    width: 100%;
+    padding: 12px 20px;
+    background-color: #ef4444;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-weight: bold;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+  }
+
+  .admin-login-box button[type="submit"]:hover {
+    background-color: #d13434;
+  }
+
+  .error-message {
+    color: #dc3545;
+    background-color: #f8d7da;
+    border: 1px solid #f5c6cb;
+    padding: 10px;
+    border-radius: 5px;
+    margin-bottom: 20px;
+    font-size: 0.9rem;
+  }
+</style>
+
+<div class="admin-login-section">
+  <div class="admin-login-box">
+    <h2>Admin Login</h2>
+    <% if (typeof errorMessage !== 'undefined' && errorMessage) { %>
+      <p class="error-message"><%= errorMessage %></p>
+    <% } %>
+    <form action="/admin/login" method="POST">
+      <label for="username">Username:</label>
+      <input type="text" id="username" name="username" required>
+
+      <label for="password">Password:</label>
+      <input type="password" id="password" name="password" required>
+
+      <button type="submit">Log In</button>
+    </form>
+  </div>
+</div>
+
+<%- include('_footer') %>

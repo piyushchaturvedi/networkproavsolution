@@ -1,0 +1,95 @@
+<%- include('_header', { pageTitle: pageTitle, activePage: 'products' }) %>
+
+<section class="product-page">
+  <!-- <h1>Bitdefender Antivirus Products</h1> -->
+  <img class="product_page_banner_img" src="/image/bitdefender-banner.jpg" />
+  <% if (groupedProducts && Object.keys(groupedProducts).length > 0) { %>
+    <% for (const category in groupedProducts) { %>
+      <div class="product-category">
+        <h2><%= category %></h2>
+        <h4>Know Before You Buy — Clear Your Doubts, Then Choose the Right Antivirus.</h4>
+        <p>NetworkproAV Solution is an independent online store and certified reseller under various official reseller programs, offering genuine Bitdefender products such as Bitdefender Antivirus Plus, Bitdefender Internet Security, Bitdefender Total Security, and Bitdefender Premium Security.These trusted tools are designed to protect your devices, data, and online privacy against modern cyber threats. Once your order is placed, the product key is delivered directly to your registered email — fast, secure, and hassle-free.Every product listed on our website is presented with complete clarity and transparency. Prices are independently set with no hidden charges — what you see is exactly what you pay.
+We acknowledge that all trademarks, logos, and brand names belong to their respective owners. We make no claim of ownership; these names are used solely to ensure accurate product representation.At NetworkproAV Solution, we follow fair business practices, comply with all industry guidelines, and prioritize honest service and customer satisfaction. We ensure clear pricing, reliable delivery timelines, and transparent communication with every order.Official Bitdefender support and product details are available at www.bitdefender.com.</p>
+        <div class="product-grid"> <!-- This is the div that needs to be the grid container -->
+          <% groupedProducts[category].forEach(product => { %>
+            <div class="product-card">
+              <span class="badge">Sale!</span>
+              <a href="/product/<%= product.id %>">
+                <img src="<%= product.image %>" alt="<%= product.name %>">
+              </a>
+              <h3><%= product.name %></h3>
+              <p class="price"><del>$<%= product.oldPrice.toFixed(2) %></del> <span>$<%= product.price.toFixed(2) %></span></p>
+              <p class="save">SAVE <%= product.savePercent %>%</p>
+              <div class="stars">
+                  <% for (let i = 0; i < Math.floor(product.rating); i++) { %>⭐<% } %>
+                  <% if (product.rating % 1 !== 0) { %><span class="half">½</span><% } %>
+              </div>
+              <!-- Truncated Description -->
+              <!-- <p class="product-description" data-full-description="<%= product.shortDesc %>">
+                  <%= product.shortDesc.substring(0, 80) %><% if (product.shortDesc.length > 80) { %>... <span class="view-more-link" data-product-id="<%= product.id %>">View More</span><% } %>
+              </p> -->
+              <button class="add-to-cart-button" data-product-id="<%= product.id %>">ADD TO CART</button>
+              <div id="message-<%= product.id %>" style="color: green; font-size: 0.8em; margin-top: 5px;"></div>
+            </div>
+          <% }); %>
+        </div>
+      </div>
+    <% } %>
+  <% } else { %>
+    <p style="text-align: center;">No Bitdefender Antivirus products found.</p>
+  <% } %>
+
+</section>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const addToCartButtons = document.querySelectorAll('.product-card .add-to-cart-button');
+        const viewMoreLinks = document.querySelectorAll('.view-more-link');
+
+        addToCartButtons.forEach(button => {
+            const productId = button.dataset.productId;
+            const messageDiv = document.getElementById(`message-${productId}`);
+
+            button.addEventListener('click', async (event) => {
+                event.stopPropagation();
+                try {
+                    const response = await fetch('/cart/add', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ productId: productId, quantity: 1 }),
+                    });
+                    console.log("JSON.stringify({ productId: productId, quantity: 1 })",JSON.stringify({ productId: productId, quantity: 1 }))
+                    const data = await response.json();
+
+                    if (response.ok) {
+                        messageDiv.textContent = data.message;
+                        messageDiv.style.color = 'green';
+                        messageDiv.style.display = 'block';
+                        setTimeout(() => { messageDiv.style.display = 'none'; }, 2000);
+                        window.location.reload(); 
+                    } else {
+                        messageDiv.textContent = data.message || `Error: ${response.statusText}`;
+                        messageDiv.style.color = 'red';
+                        messageDiv.style.display = 'block';
+                        console.error('Server error response:', data);
+                    }
+                } catch (error) {
+                    console.error('Error during Add to Cart fetch:', error);
+                    messageDiv.textContent = 'An error occurred during network request. Please try again.';
+                    messageDiv.style.color = 'red';
+                    messageDiv.style.display = 'block';
+                }
+            });
+        });
+
+        viewMoreLinks.forEach(link => {
+            link.addEventListener('click', (event) => {
+                event.stopPropagation();
+                const productId = link.dataset.productId;
+                window.location.href = `/product/${productId}`;
+            });
+        });
+    });
+</script>
+
+<%- include('_footer') %>

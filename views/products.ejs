@@ -1,0 +1,74 @@
+<%- include('_header', { pageTitle: pageTitle, activePage: 'products' }) %>
+
+<section class="product-page">
+  <h1>All Antivirus Products</h1>
+
+  <% for (const category in groupedProducts) { %>
+    <div class="product-category">
+      <h2><%= category %></h2>
+      <div class="product-grid">
+        <% groupedProducts[category].forEach(product => { %>
+          <div class="product-card">
+            <span class="badge">Sale!</span>
+            <a href="/product/<%= product.id %>">
+              <img src="<%= product.image %>" alt="<%= product.name %>">
+            </a>
+            <h3><%= product.name %></h3>
+            <p class="price"><del>$<%= product.oldPrice.toFixed(2) %></del> <span>$<%= product.price.toFixed(2) %></span></p>
+            <p class="save">SAVE <%= product.savePercent %>%</p>
+            <button class="add-to-cart-button" data-product-id="<%= product.id %>">ADD TO CART</button>
+            <div id="message-<%= product.id %>" style="color: green; font-size: 0.8em; margin-top: 5px;"></div>
+          </div>
+        <% }); %>
+      </div>
+    </div>
+  <% } %>
+
+</section>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const addToCartButtons = document.querySelectorAll('.product-card .add-to-cart-button');
+
+        addToCartButtons.forEach(button => {
+            console.log('Add to Cart button found (Products Page).'); // Debugging log
+            const productId = button.dataset.productId;
+            const messageDiv = document.getElementById(`message-${productId}`);
+
+            button.addEventListener('click', async () => {
+                console.log(`Add to Cart clicked for productId: ${productId} (Products Page)`); // Debugging log
+                try {
+                    const response = await fetch('/cart/add', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ productId: productId, quantity: 1 }),
+                    });
+                    
+                    console.log('Fetch response status (Products Page):', response.status); // Debugging log
+                    const data = await response.json();
+                    console.log('Fetch response data (Products Page):', data); // Debugging log
+
+                    if (response.ok) {
+                        messageDiv.textContent = data.message;
+                        messageDiv.style.color = 'green';
+                        messageDiv.style.display = 'block';
+                        setTimeout(() => { messageDiv.style.display = 'none'; }, 2000); // Hide after 2 seconds
+                        window.location.reload(); // Reload to update cart in header
+                    } else {
+                        messageDiv.textContent = data.message || `Error: ${response.statusText}`; // Show more descriptive error
+                        messageDiv.style.color = 'red';
+                        messageDiv.style.display = 'block';
+                        console.error('Server error response (Products Page):', data); // Log server error
+                    }
+                } catch (error) {
+                    console.error('Error during Add to Cart fetch (Products Page):', error); // Log network/JS error
+                    messageDiv.textContent = 'An error occurred during network request. Please try again.';
+                    messageDiv.style.color = 'red';
+                    messageDiv.style.display = 'block';
+                }
+            });
+        });
+    });
+</script>
+
+<%- include('_footer') %>

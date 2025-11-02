@@ -1,0 +1,136 @@
+ <footer class="footer">
+   <div class="footer-container">
+
+     <!-- Company Info -->
+     <div class="footer-section">
+       <h3><%= settings.footerCompanyName %></h3>
+       <p><%= settings.footerCompanyTagline %></p>
+     </div>
+
+     <!-- Quick Links -->
+     <div class="footer-section">
+       <h4>Quick Links</h4>
+       <ul>
+         <!-- Hardcoded links (can be removed if all links are dynamic) -->
+         <li><a href="/">Home</a></li>
+         <li><a href="/products">All Products</a></li>
+
+         <!-- Dynamic Pages in Footer Quick Links -->
+         <% if (footerPages && footerPages.length > 0) { %>
+         <% footerPages.forEach(page => { %>
+         <% if(page.slug) { %><li><a href="/page/<%= page.slug %>"><%= page.title %></a></li> <% } %>
+         <% }); %>
+         <% } %>
+
+
+       </ul>
+     </div>
+
+     <!-- Contact Info -->
+     <div class="footer-section">
+       <h4>Contact Us</h4>
+       <p>Email: <%= settings.footerContactEmail %></p>
+       <p>Phone: <%= settings.footerContactPhone %></p>
+       <p>Address: <%= settings.footerContactAddress %></p>
+       <p> <b>Payment Methods Accepted:</b> <%= settings.footerPaymentMethods %></p>
+     </div>
+
+     <!-- Newsletter -->
+     <div class="footer-section">
+       <h4><%= settings.footerNewsletterHeading %></h4>
+       <form class="newsletter">
+         <input type="email" placeholder="Enter your email" required>
+         <button type="submit">Subscribe</button>
+       </form>
+       <div class="social-icons">
+         <% settings.footerSocialIcons.forEach(icon => { %>
+         <a href="<%= icon.url %>"><img src="<%= icon.img %>" alt="<%= icon.name %>" /></a>
+         <% }); %>
+       </div>
+     </div>
+   </div>
+
+   <!-- NEW: Disclaimer Section in Footer -->
+   <div class="footer-disclaimer-section">
+     <h2><%= settings.disclaimerHeading %></h2>
+     <%- settings.disclaimerContent %>
+   </div>
+
+   <div class="footer-bottom">
+     <%= settings.footerCopyrightText %>
+   </div>
+ </footer>
+
+ <script src="/js/main.js"></script>
+
+ <!--Start of Tawk.to Script-->
+ <!-- <script type="text/javascript">
+var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
+(function(){
+var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];
+s1.async=true;
+s1.src='https://embed.tawk.to/685c654671a033190a6218a0/1iuken7h4';
+s1.charset='UTF-8';
+s1.setAttribute('crossorigin','*');
+s0.parentNode.insertBefore(s1,s0);
+})();
+</script> -->
+
+
+ <script>
+  // Hide all elements with class 'chat-bubble'
+  //  document.querySelectorAll('.chat-bubble').forEach(function (el) {
+  //    el.style.display = 'none';
+  //  });
+
+   // Hide all elements with class 'offline-text'
+  //  document.querySelectorAll('.offline-text').forEach(function (el) {
+  //    el.style.display = 'none';
+  //  });
+
+   // Assign unique URLs to each banner image
+   const bannerLinks = [
+     "/products/mcafee",
+     "/products/watchdog",
+     "/products/bitdefender",
+     "/products/avg",
+     "/products/norton" // repeat or change as needed
+   ];
+
+   // Get all the campaign banner images
+   const campaignImages = document.querySelectorAll('.campaign-slides img');
+
+   // Loop through each image and assign click event
+   campaignImages.forEach((img, index) => {
+     img.style.cursor = 'pointer'; // make cursor show clickable hand
+     img.addEventListener('click', () => {
+       window.location.href = bannerLinks[index];
+     });
+   });
+
+
+   // Define URLs for each antivirus banner
+   const antivirusLinks = [
+     "/products/mcafee",
+     "/products/norton",
+     "/products/watchdog",
+     "/products/bitdefender",
+     "/products/avg"
+   ];
+
+   // Get all slider images
+   const antivirusImages = document.querySelectorAll('.antivirus-slider .slides img');
+
+   // Assign click events dynamically
+   antivirusImages.forEach((img, index) => {
+     img.style.cursor = 'pointer'; // show hand cursor on hover
+     img.addEventListener('click', () => {
+       window.location.href = antivirusLinks[index];
+     });
+   });
+ </script>
+ <!--End of Tawk.to Script-->
+
+ </body>
+
+ </html>

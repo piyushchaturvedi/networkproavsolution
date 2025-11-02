@@ -1,0 +1,338 @@
+<%- include('_header', { pageTitle: pageTitle, activePage: 'add-product' }) %>
+
+<style>
+  /* Styling similar to product edit form */
+  .add-product-form {
+    max-width: 800px;
+    margin: 40px auto;
+    padding: 30px;
+    background-color: #fff;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    border-radius: 8px;
+  }
+
+  .add-product-form h1 {
+    text-align: center;
+    margin-bottom: 30px;
+    color: #333;
+  }
+
+  .add-product-form label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: bold;
+    color: #555;
+  }
+
+  .add-product-form input[type="text"],
+  .add-product-form input[type="number"],
+  .add-product-form textarea,
+  .add-product-form select,
+  .add-product-form input[type="file"] {
+    width: calc(100% - 22px);
+    padding: 10px;
+    margin-bottom: 20px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 1rem;
+  }
+
+  .add-product-form textarea {
+    resize: vertical;
+    min-height: 120px;
+  }
+
+  .add-product-form button[type="submit"],
+  .add-product-form button[type="button"] {
+    display: block;
+    width: 100%;
+    padding: 12px 20px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    margin-top: 10px;
+  }
+
+  .add-product-form button[type="submit"]:hover,
+  .add-product-form button[type="button"]:hover {
+    background-color: #0056b3;
+  }
+
+  .form-group {
+    margin-bottom: 15px;
+  }
+
+  .message {
+      background-color: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+      padding: 10px 20px;
+      margin-bottom: 20px;
+      border-radius: 5px;
+      text-align: center;
+  }
+
+  .error {
+      background-color: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+      padding: 10px 20px;
+      margin-bottom: 20px;
+      border-radius: 5px;
+      text-align: center;
+  }
+
+  .category-add-section {
+    border: 1px solid #ddd;
+    padding: 15px;
+    margin-bottom: 20px;
+    border-radius: 5px;
+    background-color: #f9f9f9;
+  }
+  .category-add-section input {
+    margin-bottom: 10px;
+  }
+  
+  /* Image upload/URL option specific styles */
+  .image-options {
+    margin-bottom: 15px;
+    border: 1px solid #eee;
+    padding: 15px;
+    border-radius: 5px;
+    background-color: #fcfcfc;
+  }
+  .image-options > div {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+  .image-options > div:last-child {
+    margin-bottom: 0;
+  }
+  .image-options label {
+    margin-bottom: 0;
+    font-weight: normal;
+    margin-right: 10px;
+  }
+  .image-options input[type="radio"] {
+    width: auto;
+    margin-right: 5px;
+    margin-bottom: 0;
+    flex-shrink: 0;
+  }
+  .image-options input[type="text"],
+  .image-options input[type="file"] {
+    flex-grow: 1;
+    margin-bottom: 0;
+  }
+  .image-input-group {
+    margin-top: 10px;
+    padding-left: 25px;
+    width: 100%;
+  }
+</style>
+
+<div class="add-product-form">
+  <h1>Add New Product</h1>
+
+  <% if (message) { %>
+    <p class="message"><%= message %></p>
+  <% } %>
+  <% if (error) { %>
+    <p class="error"><%= error %></p>
+  <% } %>
+
+  <div class="category-add-section">
+    <h2>Add New Category</h2>
+    <input type="text" id="newCategoryName" placeholder="New Category Name">
+    <button type="button" id="addNewCategoryBtn">Add Category</button>
+    <div id="categoryMessage" style="margin-top: 10px;"></div>
+  </div>
+
+  <form action="/admin/product/add" method="POST" enctype="multipart/form-data">
+    <div class="form-group">
+      <label for="name">Product Name:</label>
+      <input type="text" id="name" name="name" required>
+    </div>
+
+    <div class="form-group">
+      <label for="category">Category:</label>
+      <select id="category" name="category" required>
+        <option value="">Select a Category</option>
+        <% categories.forEach(cat => { %>
+          <option value="<%= cat.name %>"><%= cat.name %></option>
+        <% }); %>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label for="oldPrice">Old Price ($):</label>
+      <input type="number" id="oldPrice" name="oldPrice" step="0.01" required>
+    </div>
+
+    <div class="form-group">
+      <label for="price">Current Price ($):</label>
+      <input type="number" id="price" name="price" step="0.01" required>
+    </div>
+
+    <div class="form-group">
+      <label for="savePercent">Save Percent (%):</label>
+      <input type="number" id="savePercent" name="savePercent" required>
+    </div>
+
+    <div class="form-group">
+      <label for="rating">Rating (0-5, e.g., 4.5):</label>
+      <input type="number" id="rating" name="rating" min="0" max="5" step="0.1"> <!-- NEW: Rating Input -->
+    </div>
+
+    <div class="form-group">
+        <label>Product Image:</label>
+        <div class="image-options">
+            <div>
+                <input type="radio" id="imageOptionUrl" name="image_add_option" value="url" checked>
+                <label for="imageOptionUrl">Use Image URL:</label>
+            </div>
+            <div class="image-input-group" id="imageUrlGroup">
+                <input type="text" id="image_url_option" name="image_url_option" placeholder="Enter full image URL">
+            </div>
+        </div>
+        <div class="image-options">
+            <div>
+                <input type="radio" id="imageOptionUpload" name="image_add_option" value="upload">
+                <label for="imageOptionUpload">Upload Image File:</label>
+            </div>
+            <div class="image-input-group" id="imageUploadGroup">
+                <input type="file" id="productImage" name="productImage" accept="image/*">
+            </div>
+        </div>
+        <small>Choose to provide an image URL or upload a file. Uploaded files will take precedence.</small>
+    </div>
+
+    <div class="form-group">
+      <label for="shortDesc">Short Description:</label>
+      <textarea id="shortDesc" name="shortDesc" required></textarea>
+    </div>
+
+    <div class="form-group">
+      <label for="longDesc">Long Description (one paragraph per line):</label>
+      <textarea id="longDesc" name="longDesc" required></textarea>
+    </div>
+
+    <div class="form-group">
+      <label for="brand">Brand:</label>
+      <input type="text" id="brand" name="brand" required>
+    </div>
+
+    <!-- <div class="form-group">
+      <label>Feature on Homepage:</label>
+      <div>
+        <input type="checkbox" id="featured" name="featured" value="true"> Mark as Featured Product
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Mark as Most Loved:</label>
+      <div>
+        <input type="checkbox" id="loved" name="loved" value="true"> Mark as Most Loved Product
+      </div>
+    </div> -->
+
+    <div class="form-group">
+      <label for="platform">Platform:</label>
+      <input type="text" id="platform" name="platform" required>
+    </div>
+
+    <div class="form-group">
+      <label for="delivery">Delivery:</label>
+      <input type="text" id="delivery" name="delivery" required>
+    </div>
+
+    <button type="submit">Add Product</button>
+  </form>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const addNewCategoryBtn = document.getElementById('addNewCategoryBtn');
+    const newCategoryNameInput = document.getElementById('newCategoryName');
+    const categorySelect = document.getElementById('category');
+    const categoryMessageDiv = document.getElementById('categoryMessage');
+
+    // Image upload/URL selection logic
+    const imageUrlRadio = document.getElementById('imageOptionUrl');
+    const imageUploadRadio = document.getElementById('imageOptionUpload');
+    const imageUrlGroup = document.getElementById('imageUrlGroup');
+    const imageUploadGroup = document.getElementById('imageUploadGroup');
+    const imageUrlInput = document.getElementById('image_url_option');
+    const imageUploadInput = document.getElementById('productImage');
+
+    function toggleImageInputs() {
+        if (imageUrlRadio.checked) {
+            imageUrlGroup.style.display = 'block';
+            imageUploadGroup.style.display = 'none';
+            imageUrlInput.setAttribute('required', 'required');
+            imageUploadInput.removeAttribute('required');
+            imageUploadInput.value = '';
+        } else {
+            imageUrlGroup.style.display = 'none';
+            imageUploadGroup.style.display = 'block';
+            imageUrlInput.removeAttribute('required');
+            imageUrlInput.value = '';
+            imageUploadInput.setAttribute('required', 'required');
+        }
+    }
+
+    // Initial state
+    toggleImageInputs();
+
+    // Add event listeners to radio buttons
+    imageUrlRadio.addEventListener('change', toggleImageInputs);
+    imageUploadRadio.addEventListener('change', toggleImageInputs);
+
+
+    if (addNewCategoryBtn) {
+      addNewCategoryBtn.addEventListener('click', async () => {
+        const categoryName = newCategoryNameInput.value.trim();
+        if (!categoryName) {
+          categoryMessageDiv.textContent = 'Category name cannot be empty.';
+          categoryMessageDiv.style.color = 'red';
+          return;
+        }
+
+        try {
+          const response = await fetch('/admin/category/add', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name: categoryName })
+          });
+          const data = await response.json();
+
+          if (response.ok) {
+            categoryMessageDiv.textContent = data.message;
+            categoryMessageDiv.style.color = 'green';
+            // Add new category to the dropdown
+            const newOption = document.createElement('option');
+            newOption.value = categoryName;
+            newOption.textContent = categoryName;
+            categorySelect.appendChild(newOption);
+            newCategoryNameInput.value = ''; // Clear input
+            categorySelect.value = categoryName; // Select the newly added category
+          } else {
+            categoryMessageDiv.textContent = data.error || 'Failed to add category.';
+            categoryMessageDiv.style.color = 'red';
+          }
+        } catch (error) {
+          console.error('Error adding category:', error);
+          categoryMessageDiv.textContent = 'An error occurred. Please try again.';
+          categoryMessageDiv.style.color = 'red';
+        }
+      });
+    }
+  });
+</script>
+
+<%- include('_footer') %>

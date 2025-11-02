@@ -1,0 +1,279 @@
+/* 🎧 Header Support Style */
+.header-support {
+  cursor: pointer;
+  transition: color 0.3s ease;
+}
+
+.header-support i {
+  font-size: 18px;
+  color: #007bff; /* Headset color */
+}
+
+.header-support span {
+  font-size: 16px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.fa.fa-shopping-cart.fa-lg {
+    font-size: 25px;
+    margin-top: 20px;
+}
+p.click_here {
+    font-size: 12px;
+    position: absolute;
+    right: 0;
+    top: 18px;
+}
+.live_supports {
+    position: relative;
+}
+.header-support:hover i,
+.header-support:hover span {
+  color: #0056b3;
+}
+
+
+.header-logo-img {
+  max-height: 50px;
+  transition: transform 0.3s ease, filter 0.3s ease;
+}
+.products_search_main {
+    width: 100%;
+    margin-left: -35px;
+}
+.products_search_header {
+    width: 70%;
+    padding-block: 8px;
+    padding-inline: 15px;
+    border: 1px solid #f04444;
+    color: #000000;
+    border-radius: 10px 0 0 10px;
+}
+.testimonials p {
+    margin-bottom: 0;
+}
+.products_search_submit_btn {
+    width: 30%;
+    padding-inline: 15px;
+    padding-block: 9px;
+    border-radius: 0 10px 10px 0;
+}
+.header_cart_help {
+    margin-right: 25px;
+}
+.header_cart_help span.badge {
+    position: absolute;
+    right: -10px;
+    top: -15px;
+    width: 20px;
+    height: 25px;
+    line-height: 25px;
+    text-align: center;
+    padding: 0;
+    font-size: 15px;
+}
+.header_cart_help span.ms-2 {
+    font-size: 19px;
+}
+#supportBtn img {
+    max-width: 20px;
+    display: block;
+    height: auto;
+    width: 100%;
+}
+#supportBtn img {
+    max-width: 50px !important;
+    width: 100%;
+    margin-right: 3px;
+}
+.products_search_header:focus-visible {
+    border: 1px solid #f04444;
+    outline: none;
+    box-shadow: none;
+}
+.header-logo-img:hover {
+  transform: scale(1.05);
+  filter: brightness(1.1);
+}
+
+/* 🔹 Menu background */
+.custom-menu-bg {
+  background-color: #ddd7d7 !important;
+}
+
+.navbar-nav .nav-link {
+  color: #222 !important;
+  transition: color 0.3s ease;
+}
+
+.navbar-nav .nav-link:hover,
+.navbar-nav .nav-link.active {
+  color: #00a84e !important;
+}
+
+.dropdown-menu {
+  border-radius: 0.5rem;
+  border: 1px solid #ccc;
+}
+
+/* 🔹 Responsive Adjustments */
+@media (max-width: 768px) {
+  .header-logo-img {
+    max-height: 65px;
+  }
+  .navbar-nav {
+    text-align: center;
+  }
+  .header_cart_help {
+    margin-right: 0;
+  }
+  .products_search_main {
+    margin-left: 0;
+  }
+  .header_cart_help span.badge {
+    top: 0;
+  }
+}
+
+
+/* === Menu Bar Background === */
+.menu-bar-bg {
+  background-color: #ddd7d7; /* desired gray color */
+  width: 100%;
+}
+
+.custom-menu-bg {
+  background-color: transparent !important; /* keep Bootstrap from overriding */
+  
+}
+
+/* Navbar links */
+.navbar-nav .nav-link {
+  color: #000 !important;
+  font-weight: 600;
+  transition: color 0.3s ease;
+}
+
+.navbar-nav .nav-link:hover,
+.navbar-nav .nav-link.active {
+  color: #00a84e !important;
+}
+
+/* Mobile responsive alignment */
+@media (max-width: 991px) {
+  .navbar-nav {
+    text-align: center;
+    gap: 1rem;
+  }
+}
+
+
+/* ---------- SLIDER FIX (applies to both antivirus & campaign) ---------- */
+/* container wrapper: keep overflow hidden */
+.antivirus-slider, .campaign-slider, .campaign-image {
+  overflow: hidden;
+  width: 100%;
+  position: relative;
+}
+
+/* slides row: flex row, will-change for smooth transform */
+.slides,
+.campaign-slides {
+  display: flex;
+  flex-wrap: nowrap;
+  transition: transform 0.6s ease-in-out;
+  will-change: transform;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* each image must take full carousel width (one per slide) */
+.slides img,
+.campaign-slides img {
+  flex: 0 0 100% !important;    /* important to override other rules */
+  width: 100% !important;
+  height: auto;
+  display: block;
+  object-fit: cover;            /* use cover for banners, or contain if you prefer */
+}
+
+/* optional: fixed height so layout doesn't jump (adjust as needed) */
+.antivirus-slider {
+  min-height: 300px;
+}
+
+.campaign-image {
+  min-height: auto;
+}
+
+@media (max-width: 1200px) {
+  .new-header.light-theme-header .row {
+    gap: 12px;
+    flex-direction: column;
+  }
+  .new-header.light-theme-header .row .text-md-start {
+    text-align: center;
+    align-items: center;
+    justify-content: center;
+    display: flex;
+}
+.new-header.light-theme-header .row .col-md-4 {
+    width: 100% !important;
+}
+.new-header.light-theme-header .row .col-md-4.text-md-end {
+    text-align: center;
+    align-items: center;
+    justify-content: center;
+    display: flex;
+    margin-bottom: 15px;
+}
+.new-header.light-theme-header .row .col-md-4.text-md-end span.position-absolute {
+    margin-top: 10px;
+}
+}
+
+/* responsive heights */
+@media (max-width: 992px) {
+  .antivirus-slider, .campaign-image {
+    min-height: 200px;
+  }
+}
+
+/* pause overlay cursor hint */
+.antivirus-slider:hover .slides,
+.campaign-image:hover .campaign-slides {
+  cursor: grab;
+}
+
+@media (max-width: 568px) {
+  .header-support {
+      margin-top: 15px;
+  }
+  .fa.fa-shopping-cart.fa-lg {
+      margin-top: 35px;
+  }
+  .top-0 {
+    top: 15px!important;
+}
+a.btn.btnNew {
+    margin-left: 0 !important;
+    margin-top: 0;
+}
+}
+
+@media (max-width: 414px) {
+  .products_search_header {
+    padding-inline: 10px;
+}
+.products_search_submit_btn {
+    padding-inline: 10px;
+}
+}
+
+@media (max-width: 375px) {
+  .header_cart_help.gap-5 {
+    gap: 25px !important;
+}
+}

@@ -1,0 +1,186 @@
+<%- include('_header', { pageTitle: pageTitle, activePage: 'pages' }) %>
+
+<style>
+  /* Styling similar to other admin forms */
+  .add-page-form {
+    max-width: 800px;
+    margin: 40px auto;
+    padding: 30px;
+    background-color: #fff;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    border-radius: 8px;
+  }
+
+  .add-page-form h1 {
+    text-align: center;
+    margin-bottom: 30px;
+    color: #333;
+  }
+
+  .add-page-form label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: bold;
+    color: #555;
+  }
+
+  .add-page-form input[type="text"],
+  .add-page-form textarea,
+  .add-page-form select {
+    width: calc(100% - 22px);
+    padding: 10px;
+    margin-bottom: 20px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 1rem;
+  }
+
+  .add-page-form textarea {
+    resize: vertical;
+    min-height: 200px;
+  }
+
+  .add-page-form .checkbox-group {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+  .add-page-form .checkbox-group input[type="checkbox"] {
+    width: auto;
+    margin-right: 10px;
+    margin-bottom: 0;
+  }
+  .add-page-form .checkbox-group label {
+    margin-bottom: 0;
+    font-weight: normal;
+  }
+
+  .add-page-form button[type="submit"] {
+    display: block;
+    width: 100%;
+    padding: 12px 20px;
+    background-color: #28a745;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+  }
+
+  .add-page-form button[type="submit"]:hover {
+    background-color: #218838;
+  }
+
+  .form-group {
+    margin-bottom: 15px;
+  }
+
+  .message {
+      background-color: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+      padding: 10px 20px;
+      margin-bottom: 20px;
+      border-radius: 5px;
+      text-align: center;
+  }
+
+  .error {
+      background-color: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+      padding: 10px 20px;
+      margin-bottom: 20px;
+      border-radius: 5px;
+      text-align: center;
+  }
+  /* CKEditor specific styling */
+  .ck.ckeditor {
+    width: calc(100% - 2px) !important;
+    margin-bottom: 20px;
+  }
+  .ck-editor__editable_inline {
+    min-height: 250px; /* Adjust height of editor content area for pages */
+  }
+</style>
+
+<div class="add-page-form">
+  <h1>Add New CMS Page</h1>
+
+  <% if (message) { %>
+    <p class="message"><%= message %></p>
+  <% } %>
+  <% if (error) { %>
+    <p class="error"><%= error %></p>
+  <% } %>
+
+  <form action="/admin/page/add" method="POST">
+    <div class="form-group">
+      <label for="title">Page Title:</label>
+      <input type="text" id="title" name="title" required>
+    </div>
+
+    <div class="form-group">
+      <label for="content">Page Content:</label>
+      <textarea id="content" name="content"></textarea> </div>
+
+    <div class="form-group">
+      <label for="menuLocation">Show in Menu:</label>
+      <select id="menuLocation" name="menuLocation">
+        <option value="none">Do Not Show in Menu</option>
+        <option value="header">Header Menu Only</option>
+        <option value="footer">Footer Menu Only</option>
+        <option value="both">Both Header and Footer</option>
+      </select>
+    </div>
+
+    <button type="submit">Add Page</button>
+  </form>
+</div>
+
+<script src="https://cdn.ckeditor.com/ckeditor5/41.4.2/classic/ckeditor.js"></script>
+
+<script>
+  let pageEditor;
+  ClassicEditor
+      .create( document.querySelector( '#content' ), {
+          htmlSupport: {
+            allow: [
+              { name: /.*/, attributes: true, classes: true, styles: true }
+            ]
+          },
+          link: {
+              decorators: {
+                  addTargetToExternalLinks: true
+              }
+          },
+          toolbar: [ // NEW: Extended toolbar for page editor
+              'heading', '|', 'bold', 'italic', 'underline', 'strikethrough', '|',
+              'bulletedList', 'numberedList', '|', 'link', 'blockquote', '|',
+              'alignment', 'insertTable', 'undo', 'redo', '|', 'sourceEditing' // Source editing for raw HTML
+          ],
+          image: { // Image configuration for URL input (no file upload here yet)
+            toolbar: [ 'imageTextAlternative', 'imageStyle:full', 'imageStyle:side' ]
+          },
+          table: { // Table configuration
+            contentToolbar: [ 'tableColumn', 'tableRow', 'mergeTableCells' ]
+          }
+      } )
+      .then( editor => {
+          pageEditor = editor;
+          console.log( 'CKEditor for page content initialized!', editor );
+      } )
+      .catch( error => {
+          console.error( 'Error initializing CKEditor for page content:', error );
+      } );
+
+    // Intercept form submission to get data from CKEditor
+    document.querySelector('form').addEventListener('submit', function() {
+        if (pageEditor) {
+            document.querySelector('#content').value = pageEditor.getData();
+        }
+    });
+</script>
+
+<%- include('_footer') %>

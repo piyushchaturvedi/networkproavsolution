@@ -1,0 +1,72 @@
+/* Global Image Auto-Adjustment CSS */
+
+/* Applies to all img tags */
+img {
+    max-width: 100%; /* Ensures image does not exceed its parent's width */
+    height: auto;    /* Maintains aspect ratio */
+    display: block;  /* Prevents extra space below images */
+}
+
+/* Specific adjustments for common image types in your layout */
+
+/* Product Card Images (from products.ejs and product_detail.ejs) */
+.product-card img {
+    width: 100%; /* Make sure it takes full width of its card */
+    height: 240px; /* Example fixed height for uniform card appearance */
+    object-fit: contain; /* Scales image down to fit, preserving aspect ratio */
+    border-radius: 6px;
+    margin-bottom: 10px; /* Space below image */
+}
+
+/* If you want product images to fill the space and crop, use 'cover' */
+/*
+.product-card img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    border-radius: 6px;
+    margin-bottom: 10px;
+}
+*/
+
+
+/* Testimonial User Images */
+.testimonials .user img {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%; /* Makes them circular */
+    object-fit: cover; /* Ensures they fill the circle without distortion */
+    margin-bottom: 8px;
+}
+
+/* Admin Panel Image Previews */
+.logo-preview-img,
+.campaign-banner-img-preview,
+.product-edit-form .image-preview {
+    max-width: 150px; /* Limit their max size */
+    height: auto;
+    object-fit: contain; /* Or 'cover' depending on desired display */
+    display: block;
+    margin-top: 10px;
+    margin-bottom: 20px;
+    border: 1px solid #ddd;
+    padding: 5px;
+}
+
+/* Campaign Banner Image (if it's a separate img tag) */
+.campaign-banner .campaign-image img {
+    max-width: 100%;
+    height: auto;
+    object-fit: contain; /* Or cover, depending on design */
+    border-radius: 8px;
+}
+
+/* General image adjustments for content from CKEditor */
+/* This ensures images inserted via CKEditor are also responsive */
+.dynamic-page-content img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin: 1em auto; /* Center images and give vertical spacing */
+    border-radius: 5px; /* Optional: subtle rounded corners */
+}

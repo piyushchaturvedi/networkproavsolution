@@ -1,0 +1,109 @@
+<%- include('_header', { pageTitle: pageTitle, activePage: 'contact-messages' }) %>
+
+<style>
+  /* Styling for viewing individual contact message */
+  .view-message-container {
+    max-width: 800px;
+    margin: 40px auto;
+    padding: 30px;
+    background-color: #fff;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    border-radius: 8px;
+  }
+
+  .view-message-container h1 {
+    text-align: center;
+    margin-bottom: 30px;
+    color: #333;
+  }
+
+  .message-details {
+    margin-bottom: 30px;
+    border: 1px solid #eee;
+    padding: 20px;
+    border-radius: 5px;
+  }
+
+  .message-details p {
+    margin-bottom: 10px;
+  }
+  .message-details strong {
+    color: #555;
+  }
+
+  .message-actions {
+    text-align: right;
+  }
+  .message-actions .btn {
+    padding: 8px 15px;
+    margin-left: 10px;
+    border-radius: 5px;
+    text-decoration: none;
+    font-weight: bold;
+  }
+
+  .mark-read-btn {
+    background-color: #28a745; /* Green */
+    color: white;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+  }
+  .mark-read-btn:hover {
+    background-color: #218838;
+  }
+  .mark-replied-btn {
+    background-color: #007bff; /* Blue */
+    color: white;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+  }
+  .mark-replied-btn:hover {
+    background-color: #0056b3;
+  }
+  .back-btn {
+      background-color: #6c757d; /* Gray */
+      color: white;
+      border: none;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+  }
+  .back-btn:hover {
+      background-color: #5a6268;
+  }
+</style>
+
+<div class="view-message-container">
+  <h1>Contact Message Details</h1>
+
+  <div class="message-details">
+    <p><strong>Sender Email:</strong> <%= message.senderEmail %></p>
+    <p><strong>Subject:</strong> <%= message.subject %></p>
+    <p><strong>Message:</strong></p>
+    <div style="border: 1px dashed #ccc; padding: 15px; background-color: #f9f9f9; border-radius: 5px;">
+        <%- message.message.replace(/\n/g, '<br>') %> <!-- Render newlines as breaks -->
+    </div>
+    <p style="margin-top: 15px;"><strong>Received On:</strong> <%= message.createdAt.toLocaleDateString() %> <%= message.createdAt.toLocaleTimeString() %></p>
+    <p><strong>Status:</strong> 
+      <span style="color:<%= message.read ? 'green' : 'orange' %>; font-weight: bold;"><%= message.read ? 'Read' : 'Unread' %></span> / 
+      <span style="color:<%= message.replied ? 'blue' : 'gray' %>; font-weight: bold;"><%= message.replied ? 'Replied' : 'Unreplied' %></span>
+    </p>
+  </div>
+
+  <div class="message-actions">
+    <a href="/admin/contact-messages" class="btn back-btn">Back to Messages</a>
+    <% if (!message.read) { %>
+      <form action="/admin/contact-messages/mark-read/<%= message._id %>" method="POST" style="display:inline-block;">
+        <button type="submit" class="btn mark-read-btn">Mark as Read</button>
+      </form>
+    <% } %>
+    <% if (!message.replied) { %>
+      <form action="/admin/contact-messages/mark-replied/<%= message._id %>" method="POST" style="display:inline-block;">
+        <button type="submit" class="btn mark-replied-btn">Mark as Replied</button>
+      </form>
+    <% } %>
+  </div>
+</div>
+
+<%- include('_footer') %>

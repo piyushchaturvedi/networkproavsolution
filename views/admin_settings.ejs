@@ -1,0 +1,545 @@
+<%- include('_header', { pageTitle: pageTitle, activePage: 'settings' }) %>
+
+<style>
+  /* Admin Settings Styling */
+  .admin-settings-container {
+    max-width: 800px;
+    margin: 40px auto;
+    padding: 30px;
+    background-color: #fff;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    border-radius: 8px;
+  }
+
+  .admin-settings-container h1 {
+    text-align: center;
+    margin-bottom: 30px;
+    color: #333;
+  }
+
+  .settings-form label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: bold;
+    color: #555;
+  }
+
+  .settings-form input[type="color"],
+  .settings-form input[type="text"],
+  .settings-form input[type="password"],
+  .settings-form textarea,
+  .settings-form input[type="file"],
+  .settings-form input[type="checkbox"] {
+    width: calc(100% - 22px);
+    padding: 10px;
+    margin-bottom: 20px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+  }
+  .settings-form input[type="checkbox"] {
+    width: auto;
+    margin-right: 10px;
+  }
+  .settings-form textarea {
+    resize: vertical;
+    min-height: 80px;
+  }
+
+
+  .settings-form button[type="submit"] {
+    display: block;
+    width: 100%;
+    padding: 12px 20px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+  }
+
+  .settings-form button[type="submit"]:hover {
+    background-color: #0056b3;
+  }
+
+  .message {
+      background-color: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+      padding: 10px 20px;
+      margin-bottom: 20px;
+      border-radius: 5px;
+      text-align: center;
+  }
+
+  .error {
+      background-color: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+      padding: 10px 20px;
+      margin-bottom: 20px;
+      border-radius: 5px;
+      text-align: center;
+  }
+  .warning {
+    background-color: #fff3cd;
+    color: #856404;
+    border: 1px solid #ffeeba;
+    padding: 10px 20px;
+    border-radius: 5px;
+    margin-bottom: 20px;
+    text-align: left;
+    font-size: 0.9em;
+  }
+  .image-options-group {
+    margin-bottom: 15px;
+    border: 1px solid #eee;
+    padding: 15px;
+    border-radius: 5px;
+    background-color: #fcfcfc;
+  }
+  .image-options-group > div {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+  .image-options-group > div:last-child {
+    margin-bottom: 0;
+  }
+  .image-options-group label {
+    margin-bottom: 0;
+    font-weight: normal;
+    margin-right: 10px;
+  }
+  .image-options-group input[type="radio"] {
+    width: auto;
+    margin-right: 5px;
+    margin-bottom: 0;
+    flex-shrink: 0;
+  }
+  .image-options-group input[type="text"],
+  .image-options-group input[type="file"] {
+    flex-grow: 1;
+    margin-bottom: 0;
+  }
+  .logo-preview-img, .campaign-banner-img-preview {
+    max-width: 100px;
+    max-height: 80px;
+    height: auto;
+    display: block;
+    margin-top: 10px;
+    margin-bottom: 20px;
+    border: 1px solid #ddd;
+    padding: 5px;
+  }
+  .json-textarea {
+      font-family: monospace;
+      white-space: pre;
+      overflow-wrap: normal;
+      overflow-x: auto;
+  }
+  /* CKEditor specific styling */
+  .ck.ckeditor {
+    width: calc(100% - 2px) !important;
+    margin-bottom: 20px;
+  }
+  .ck-editor__editable_inline {
+    min-height: 150px;
+  }
+</style>
+
+<div class="admin-settings-container">
+  <h1>Website Settings</h1>
+
+  <% if (message) { %>
+    <p class="message"><%= message %></p>
+  <% } %>
+  <% if (error) { %>
+    <p class="error"><%= error %></p>
+  <% } %>
+
+  <div class="warning">
+    <strong>Security Warning:</strong> Storing sensitive API keys and passwords directly in the database, especially unencrypted, is generally not recommended for production environments. Consider using environment variables or a secure secrets management service for enhanced security.
+  </div>
+
+  <form action="/admin/settings/update" method="POST" enctype="multipart/form-data">
+    <h2>Theme & Appearance</h2>
+    <div class="form-group">
+      <label for="themeColor">Primary Theme Color:</label>
+      <input type="color" id="themeColor" name="themeColor" value="<%= currentThemeColor %>">
+      <input type="text" id="themeColorText" name="themeColor" value="<%= currentThemeColor %>" oninput="document.getElementById('themeColor').value = this.value">
+      <small>Change the main accent color of the website. (e.g., #RRGGBB)</small>
+    </div>
+
+    <div class="form-group">
+        <label>Main Logo:</label>
+        <% if (mainLogoUrl) { %>
+            <img src="<%= mainLogoUrl %>" alt="Current Logo" class="logo-preview-img">
+            <p><small>Current Logo URL/Path: <%= mainLogoUrl %></small></p>
+        <% } else { %>
+            <p><small>No logo set. Using text 'CyberSafeTrust'.</small></p>
+        <% } %>
+        
+        <div class="image-options-group">
+            <div>
+                <input type="radio" id="logoOptionUrl" name="mainLogoUrlOption" value="url" <%= (mainLogoUrl && !mainLogoUrl.startsWith('/uploads/logos')) ? 'checked' : '' %>>
+                <label for="logoOptionUrl">Use Logo URL:</label>
+            </div>
+            <div>
+                <input type="text" id="mainLogoUrlInput" name="mainLogoUrlInput" value="<%= (mainLogoUrl && !mainLogoUrl.startsWith('/uploads/logos')) ? mainLogoUrl : '' %>" placeholder="Enter full image URL">
+            </div>
+        </div>
+        <div class="image-options-group">
+            <div>
+                <input type="radio" id="logoOptionUpload" name="mainLogoUrlOption" value="upload" <%= (mainLogoUrl && mainLogoUrl.startsWith('/uploads/logos')) ? 'checked' : '' %>>
+                <label for="logoOptionUpload">Upload New Logo File:</label>
+            </div>
+            <div>
+                <input type="file" id="mainLogoFile" name="mainLogoFile" accept="image/*">
+            </div>
+        </div>
+        <small>Select one option to change the logo. Uploaded files will be stored in `/public/uploads/logos`.</small>
+    </div>
+
+
+    <h2 style="margin-top: 40px;">SEO Settings (Site-wide)</h2>
+    <div class="form-group">
+      <label for="metaTitle">Meta Title:</label>
+      <input type="text" id="metaTitle" name="metaTitle" value="<%= metaTitle %>" placeholder="e.g., Your Store Name | Online Shop">
+      <small>Appears in browser tab and search engine results title.</small>
+    </div>
+    <div class="form-group">
+      <label for="metaDescription">Meta Description:</label>
+      <textarea id="metaDescription" name="metaDescription" placeholder="e.g., Shop high-quality products at great prices. Fast shipping and excellent customer service."><%= metaDescription %></textarea>
+      <small>Brief summary of the page content for search engines.</small>
+    </div>
+    <div class="form-group">
+      <label for="metaKeywords">Meta Keywords:</label>
+      <input type="text" id="metaKeywords" name="metaKeywords" value="<%= metaKeywords %>" placeholder="e.g., product, shop, online, ecommerce">
+      <small>Comma-separated keywords (less impactful for SEO now, but good practice).</small>
+    </div>
+
+    <h2 style="margin-top: 40px;">Homepage Content - Antivirus Section</h2>
+    <div class="form-group">
+        <label for="homePhoneNumber">Phone Number (Header):</label>
+        <input type="text" id="homePhoneNumber" name="homePhoneNumber" value="<%= homePhoneNumber %>" placeholder="+91 98765 43210">
+        <small>The phone number displayed in the main banner section.</small>
+    </div>
+    <div class="form-group">
+        <label for="homeSubtitle">Subtitle:</label>
+        <input type="text" id="homeSubtitle" name="homeSubtitle" value="<%= homeSubtitle %>" placeholder="Highest Quality Commodities">
+        <small>Text above the main heading.</small>
+    </div>
+    <div class="form-group">
+        <label for="homeHeading">Main Heading:</label>
+        <textarea id="homeHeading" name="homeHeading" placeholder="Explore Top Antivirus Deals&#10;Save up to 80%"><%= homeHeading %></textarea>
+        <small>Main heading. Use `&#10;` or press Enter for line breaks.</small>
+    </div>
+    <div class="form-group">
+        <label for="homeDescription">Description Text:</label>
+        <textarea id="homeDescription" name="homeDescription" placeholder="To protect your device and private information, choose the best antivirus software."><%= homeDescription %></textarea>
+        <small>Descriptive text below the main heading.</small>
+    </div>
+    <div class="form-group">
+        <label for="homeButtonText">Button Text:</label>
+        <input type="text" id="homeButtonText" name="homeButtonText" value="<%= homeButtonText %>" placeholder="GET STARTED →">
+        <small>Text on the main action button.</small>
+    </div>
+    <div class="form-group">
+        <label for="homeButtonLink">Button Link (URL):</label>
+        <input type="text" id="homeButtonLink" name="homeButtonLink" value="<%= homeButtonLink %>" placeholder="/products">
+        <small>URL the button links to.</small>
+    </div>
+
+    <h2 style="margin-top: 40px;">Homepage Content - Disclaimer Banner</h2>
+    <div class="form-group">
+        <label for="disclaimerHeading">Disclaimer Heading:</label>
+        <input type="text" id="disclaimerHeading" name="disclaimerHeading" value="<%= disclaimerHeading %>" placeholder="Disclaimer">
+        <small>The main heading for the disclaimer section.</small>
+    </div>
+    <div class="form-group">
+        <label for="disclaimerContent">Disclaimer Content:</label>
+        <textarea id="disclaimerContent" name="disclaimerContent"><%= disclaimerContent %></textarea>
+        <small>Full content of the disclaimer. HTML is supported here.</small>
+    </div>
+
+    <h2 style="margin-top: 40px;">Homepage Content - Campaign Banner</h2>
+    <div class="form-group">
+        <input type="checkbox" id="enableCampaignBanner" name="enableCampaignBanner" <%= enableCampaignBanner ? 'checked' : '' %>>
+        <label for="enableCampaignBanner" style="display: inline;">Enable Campaign Banner</label>
+        <small style="display: block;">Check to display the campaign banner on the homepage.</small>
+    </div>
+    <div class="form-group">
+        <label for="campaignBannerHeading">Campaign Banner Heading:</label>
+        <input type="text" id="campaignBannerHeading" name="campaignBannerHeading" value="<%= campaignBannerHeading %>" placeholder="Limited Time Offer!">
+    </div>
+    <div class="form-group">
+        <label for="campaignBannerText">Campaign Banner Text:</label>
+        <textarea id="campaignBannerText" name="campaignBannerText" placeholder="Get 50% OFF on all Antivirus products this week!"><%= campaignBannerText %></textarea>
+    </div>
+    <div class="form-group">
+        <label for="campaignBannerButtonText">Campaign Button Text:</label>
+        <input type="text" id="campaignBannerButtonText" name="campaignBannerButtonText" value="<%= campaignBannerButtonText %>" placeholder="Shop Now">
+    </div>
+    <div class="form-group">
+        <label for="campaignBannerButtonLink">Campaign Button Link:</label>
+        <input type="text" id="campaignBannerButtonLink" name="campaignBannerButtonLink" value="<%= campaignBannerButtonLink %>" placeholder="/products">
+    </div>
+    <div class="form-group">
+        <label for="campaignBannerBackgroundColor">Banner Background Color:</label>
+        <input type="color" id="campaignBannerBackgroundColor" name="campaignBannerBackgroundColor" value="<%= campaignBannerBackgroundColor %>">
+        <input type="text" id="campaignBannerBackgroundColorText" name="campaignBannerBackgroundColor" value="<%= campaignBannerBackgroundColor %>" oninput="document.getElementById('campaignBannerBackgroundColor').value = this.value">
+    </div>
+    <div class="form-group">
+        <label for="campaignBannerTextColor">Banner Text Color:</label>
+        <input type="color" id="campaignBannerTextColor" name="campaignBannerTextColor" value="<%= campaignBannerTextColor %>">
+        <input type="text" id="campaignBannerTextColorText" name="campaignBannerTextColor" value="<%= campaignBannerTextColor %>" oninput="document.getElementById('campaignBannerTextColor').value = this.value">
+    </div>
+    <div class="form-group">
+        <label>Campaign Banner Image:</label>
+        <% if (campaignBannerImageUrl) { %>
+            <img src="<%= campaignBannerImageUrl %>" alt="Current Banner Image" class="campaign-banner-img-preview">
+            <p><small>Current Image URL/Path: <%= campaignBannerImageUrl %></small></p>
+        <% } else { %>
+            <p><small>No banner image set.</small></p>
+        <% } %>
+        <div class="image-options-group">
+            <div>
+                <input type="radio" id="campaignBannerImageOptionUrl" name="campaignBannerImageOption" value="url" <%= (campaignBannerImageUrl && !campaignBannerImageUrl.startsWith('/uploads/campaign_banners')) ? 'checked' : '' %>>
+                <label for="campaignBannerImageOptionUrl">Use Image URL:</label>
+            </div>
+            <div>
+                <input type="text" id="campaignBannerImageUrlInput" name="campaignBannerImageUrlInput" value="<%= (campaignBannerImageUrl && !campaignBannerImageUrl.startsWith('/uploads/campaign_banners')) ? campaignBannerImageUrl : '' %>" placeholder="Enter full image URL">
+            </div>
+        </div>
+        <div class="image-options-group">
+            <div>
+                <input type="radio" id="campaignBannerImageOptionUpload" name="campaignBannerImageOption" value="upload" <%= (campaignBannerImageUrl && campaignBannerImageUrl.startsWith('/uploads/campaign_banners')) ? 'checked' : '' %>>
+                <label for="campaignBannerImageOptionUpload">Upload New Image File:</label>
+            </div>
+            <div>
+                <input type="file" id="campaignBannerImageFile" name="campaignBannerImageFile" accept="image/*">
+            </div>
+        </div>
+    </div>
+
+
+    <h2 style="margin-top: 40px;">Footer Content</h2>
+    <div class="form-group">
+        <label for="footerCompanyName">Company Name (Footer):</label>
+        <input type="text" id="footerCompanyName" name="footerCompanyName" value="<%= footerCompanyName %>" placeholder="CyberSafeTrust">
+    </div>
+    <div class="form-group">
+        <label for="footerCompanyTagline">Company Tagline (Footer):</label>
+        <input type="text" id="footerCompanyTagline" name="footerCompanyTagline" value="<%= footerCompanyTagline %>" placeholder="Protecting your digital life...">
+    </div>
+    <div class="form-group">
+        <label for="footerContactEmail">Contact Email (Footer):</label>
+        <input type="email" id="footerContactEmail" name="footerContactEmail" value="<%= footerContactEmail %>" placeholder="support@cybersafetrust.com">
+    </div>
+    <div class="form-group">
+        <label for="footerContactPhone">Contact Phone (Footer):</label>
+        <input type="text" id="footerContactPhone" name="footerContactPhone" value="<%= footerContactPhone %>" placeholder="+91 98765 43210">
+    </div>
+    <div class="form-group">
+        <label for="footerContactAddress">Contact Address (Footer):</label>
+        <input type="text" id="footerContactAddress" name="footerContactAddress" value="<%= footerContactAddress %>" placeholder="Mumbai, India">
+    </div>
+    <div class="form-group">
+        <label for="footerPaymentMethods">Payment Methods (Footer):</label>
+        <input type="text" id="footerPaymentMethods" name="footerPaymentMethods" value="<%= footerPaymentMethods %>" placeholder="Paypal, Visa, MasterCard...">
+        <small>Comma-separated list of payment methods.</small>
+    </div>
+    <div class="form-group">
+        <label for="footerNewsletterHeading">Newsletter Heading (Footer):</label>
+        <input type="text" id="footerNewsletterHeading" name="footerNewsletterHeading" value="<%= footerNewsletterHeading %>" placeholder="Stay Updated">
+    </div>
+    <div class="form-group">
+        <label for="footerCopyrightText">Copyright Text (Footer):</label>
+        <input type="text" id="footerCopyrightText" name="footerCopyrightText" value="<%= footerCopyrightText %>" placeholder="&copy; 2025 CyberSafeTrust. All rights reserved.">
+    </div>
+    <div class="form-group">
+        <label for="footerQuickLinksJson">Quick Links (Footer) - JSON Array:</label>
+        <textarea id="footerQuickLinksJson" name="footerQuickLinksJson" class="json-textarea" rows="8"><%= footerQuickLinksJson %></textarea>
+        <small>Enter as a JSON array of objects: `[{"text": "Home", "url": "/"}, {"text": "About", "url": "/page/about-us"}]`</small>
+    </div>
+    <div class="form-group">
+        <label for="footerSocialIconsJson">Social Icons (Footer) - JSON Array:</label>
+        <textarea id="footerSocialIconsJson" name="footerSocialIconsJson" class="json-textarea" rows="8"><%= footerSocialIconsJson %></textarea>
+        <small>Enter as a JSON array of objects: `[{"name": "Facebook", "url": "#", "img": "URL_TO_IMG"}]`</small>
+    </div>
+
+
+    <h2 style="margin-top: 40px;">Payment & Email Credentials</h2>
+    <div class="form-group">
+      <label for="paypalClientId">PayPal Client ID:</label>
+      <input type="text" id="paypalClientId" name="paypalClientId" value="<%= paypalClientId %>" placeholder="Your PayPal Client ID">
+      <small>Obtain this from your PayPal Developer Dashboard.</small>
+    </div>
+    <div class="form-group">
+      <label for="paypalClientSecret">PayPal Client Secret:</label>
+      <input type="password" id="paypalClientSecret" name="paypalClientSecret" value="<%= paypalClientSecret %>" placeholder="Your PayPal Client Secret">
+      <small>Keep this confidential.</small>
+    </div>
+    <div class="form-group">
+      <label for="emailUser">Sender Email Address (Nodemailer):</label>
+      <input type="text" id="emailUser" name="emailUser" value="<%= emailUser %>" placeholder="e.g., your_email@gmail.com">
+      <small>The email address used to send contact form submissions.</small>
+    </div>
+    <div class="form-group">
+      <label for="emailPass">Sender Email Password/App Password:</label>
+      <input type="password" id="emailPass" name="emailPass" value="<%= emailPass %>" placeholder="Your email password or app password">
+      <small>For Gmail, use an <a href="https://support.google.com/accounts/answer/185833?hl=en" target="_blank">App password</a>.</small>
+    </div>
+    <div class="form-group">
+        <input type="checkbox" id="sendCustomerContactConfirmEmail" name="sendCustomerContactConfirmEmail" <%= sendCustomerContactConfirmEmail ? 'checked' : '' %>>
+        <label for="sendCustomerContactConfirmEmail" style="display: inline;">Send Customer Confirmation Email</label>
+        <small style="display: block;">If checked, customers will receive an email confirmation after submitting the contact form.</small>
+    </div>
+    <div class="form-group">
+        <label for="contactRecipientEmail">Contact Form Recipient Email:</label>
+        <input type="email" id="contactRecipientEmail" name="contactRecipientEmail" value="<%= contactRecipientEmail %>" placeholder="admin@yourdomain.com">
+        <small>The email address where contact form submissions will be sent.</small>
+    </div>
+
+    <button type="submit">Save Settings</button>
+  </form>
+</div>
+
+<!-- CKEditor 5 CDN -->
+<script src="https://cdn.ckeditor.com/ckeditor5/41.4.2/classic/ckeditor.js"></script>
+
+<script>
+  // Sync color input with text input
+  document.getElementById('themeColor').addEventListener('input', function() {
+    document.getElementById('themeColorText').value = this.value;
+  });
+  document.getElementById('campaignBannerBackgroundColor').addEventListener('input', function() {
+    document.getElementById('campaignBannerBackgroundColorText').value = this.value;
+  });
+  document.getElementById('campaignBannerTextColor').addEventListener('input', function() {
+    document.getElementById('campaignBannerTextColorText').value = this.value;
+  });
+
+
+  // Initialize CKEditor 5 for Disclaimer Content
+  let disclaimerEditor;
+  ClassicEditor
+      .create( document.querySelector( '#disclaimerContent' ), {
+          htmlSupport: {
+            allow: [
+              { name: /.*/, attributes: true, classes: true, styles: true }
+            ]
+          },
+          toolbar: [
+              'heading', '|', 'bold', 'italic', 'underline', 'strikethrough', '|',
+              'bulletedList', 'numberedList', '|', 'link', 'blockquote', 'uploadImage', 'insertTable', '|',
+              'alignment', 'undo', 'redo', '|', 'sourceEditing'
+          ],
+          image: {
+            toolbar: [ 'imageTextAlternative', 'imageStyle:full', 'imageStyle:side' ]
+          },
+          table: {
+            contentToolbar: [ 'tableColumn', 'tableRow', 'mergeTableCells' ]
+          }
+      } )
+      .then( editor => {
+          disclaimerEditor = editor;
+          console.log( 'CKEditor for disclaimer initialized!', editor );
+          editor.setData(`<%= disclaimerContent %>`);
+      } )
+      .catch( error => {
+          console.error( 'Error initializing CKEditor for disclaimer:', error );
+      } );
+
+    // Main Logo upload/URL selection logic
+    const logoUrlRadio = document.getElementById('logoOptionUrl');
+    const logoUploadRadio = document.getElementById('logoOptionUpload');
+    const mainLogoUrlInput = document.getElementById('mainLogoUrlInput');
+    const mainLogoFile = document.getElementById('mainLogoFile');
+
+    function toggleLogoInputs() {
+        if (logoUrlRadio.checked) {
+            mainLogoUrlInput.style.display = 'block';
+            mainLogoFile.style.display = 'none';
+            // mainLogoUrlInput.setAttribute('required', 'required');
+            // mainLogoFile.removeAttribute('required');
+            mainLogoFile.value = '';
+        } else {
+            mainLogoUrlInput.style.display = 'none';
+            mainLogoFile.style.display = 'block';
+            // mainLogoUrlInput.removeAttribute('required');
+            mainLogoUrlInput.value = '';
+            // mainLogoFile.setAttribute('required', 'required');
+        }
+    }
+
+    if (logoUploadRadio.checked) { toggleLogoInputs(); } else { logoUrlRadio.checked = true; toggleLogoInputs(); }
+    logoUrlRadio.addEventListener('change', toggleLogoInputs);
+    logoUploadRadio.addEventListener('change', toggleLogoInputs);
+
+
+    // Campaign Banner Image upload/URL selection logic
+    const campaignBannerImageOptionUrl = document.getElementById('campaignBannerImageOptionUrl');
+    const campaignBannerImageOptionUpload = document.getElementById('campaignBannerImageOptionUpload');
+    const campaignBannerImageUrlInput = document.getElementById('campaignBannerImageUrlInput');
+    const campaignBannerImageFile = document.getElementById('campaignBannerImageFile');
+
+    function toggleCampaignBannerImageInputs() {
+        if (campaignBannerImageOptionUrl.checked) {
+            campaignBannerImageUrlInput.style.display = 'block';
+            campaignBannerImageFile.style.display = 'none';
+            // campaignBannerImageUrlInput.setAttribute('required', 'required');
+            // campaignBannerImageFile.removeAttribute('required');
+            campaignBannerImageFile.value = '';
+        } else {
+            campaignBannerImageUrlInput.style.display = 'none';
+            campaignBannerImageFile.style.display = 'block';
+            // campaignBannerImageUrlInput.removeAttribute('required');
+            campaignBannerImageUrlInput.value = '';
+            // campaignBannerImageFile.setAttribute('required', 'required');
+        }
+    }
+
+    if (campaignBannerImageOptionUpload.checked) { toggleCampaignBannerImageInputs(); } else { campaignBannerImageOptionUrl.checked = true; toggleCampaignBannerImageInputs(); }
+    campaignBannerImageOptionUrl.addEventListener('change', toggleCampaignBannerImageInputs);
+    campaignBannerImageOptionUpload.addEventListener('change', toggleCampaignBannerImageInputs);
+
+
+    // Intercept form submission to get data from CKEditor and handle JSON parsing
+    document.querySelector('form').addEventListener('submit', function(event) {
+        if (disclaimerEditor) {
+            document.querySelector('#disclaimerContent').value = disclaimerEditor.getData();
+        }
+        
+        // JSON textareas validation
+        const quickLinksTextarea = document.getElementById('footerQuickLinksJson');
+        const socialIconsTextarea = document.getElementById('footerSocialIconsJson');
+        
+        try { JSON.parse(quickLinksTextarea.value); } catch (e) { alert('Error in Quick Links JSON format. Please correct it: ' + e.message); event.preventDefault(); return false; }
+        try { JSON.parse(socialIconsTextarea.value); } catch (e) { alert('Error in Social Icons JSON format. Please correct it: ' + e.message); event.preventDefault(); return false; }
+
+        // Handle checkbox value for enableCampaignBanner
+        const enableCampaignBannerCheckbox = document.getElementById('enableCampaignBanner');
+        // If checkbox is unchecked, its value is not sent in req.body. Set it explicitly to false.
+        if (!enableCampaignBannerCheckbox.checked) {
+            const hiddenInput = document.createElement('input');
+            hiddenInput.type = 'hidden';
+            hiddenInput.name = 'enableCampaignBanner';
+            hiddenInput.value = 'off'; // Multer will then parse 'off' to boolean false.
+            event.target.appendChild(hiddenInput);
+        }
+        // Handle checkbox value for sendCustomerContactConfirmEmail
+        const sendCustomerContactConfirmEmailCheckbox = document.getElementById('sendCustomerContactConfirmEmail');
+        if (!sendCustomerContactConfirmEmailCheckbox.checked) {
+            const hiddenInput = document.createElement('input');
+            hiddenInput.type = 'hidden';
+            hiddenInput.name = 'sendCustomerContactConfirmEmail';
+            hiddenInput.value = 'off';
+            event.target.appendChild(hiddenInput);
+        }
+    });
+</script>
+
+<%- include('_footer') %>

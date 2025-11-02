@@ -1,0 +1,51 @@
+<%- include('_header', { pageTitle: page.title, activePage: page.slug }) %>
+
+<style>
+  .dynamic-page-content {
+    max-width: 900px;
+    margin: 40px auto;
+    padding: 30px;
+    background-color: #fff;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    border-radius: 8px;
+    line-height: 1.6;
+    color: #333;
+  }
+
+  .dynamic-page-content h1 {
+    text-align: center;
+    margin-bottom: 30px;
+    color: #333;
+    font-size: 2.5rem;
+    border-bottom: 2px solid var(--primary-color);
+    padding-bottom: 10px;
+  }
+
+  .dynamic-page-content img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin: 20px auto;
+    border-radius: 8px;
+  }
+  .dynamic-page-content p {
+    margin-bottom: 1em;
+  }
+  /* Ensure basic styling for content from CKEditor */
+  .dynamic-page-content h2, .dynamic-page-content h3, .dynamic-page-content h4 {
+      margin-top: 1.5em;
+      margin-bottom: 0.8em;
+      color: #333; /* Ensure headings have proper color */
+  }
+  .dynamic-page-content ul, .dynamic-page-content ol {
+      margin-left: 20px;
+      margin-bottom: 1em;
+  }
+</style>
+
+<div class="dynamic-page-content">
+  <h1><%= page.title %></h1>
+  <%- page.content %> <!-- Ensure this %> is correct and not missing -->
+</div>
+
+<%- include('_footer') %>

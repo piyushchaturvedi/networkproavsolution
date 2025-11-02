@@ -1,2 +1,4 @@
 # Node.js Dependencies
 /node_modules
+
+/pem
