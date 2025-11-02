@@ -159,18 +159,17 @@
       <input type="number" id="rating" name="rating" min="0" max="5" step="0.1" value="<%= product.rating %>">
     </div>
 
-    <!-- ✅ Added Featured & Loved Product Options -->
-    <!-- <div class="form-group">
-      <label>Product Type:</label>
+    <div class="form-group">
+      <label>Product Visibility:</label>
       <div class="form-check">
         <input type="checkbox" id="featured" name="isFeatured" value="true" <%= product.isFeatured ? 'checked' : '' %>>
-        <label for="featured">Featured Product</label>
+        <label for="featured" class="form-check-label">Featured Product (Show on Homepage)</label>
       </div>
       <div class="form-check">
         <input type="checkbox" id="loved" name="isLoved" value="true" <%= product.isLoved ? 'checked' : '' %>>
-        <label for="loved">Most Loved Product</label>
+        <label for="loved" class="form-check-label">Most Loved Product (Show on Homepage)</label>
       </div>
-    </div> -->
+    </div>
 
     <div class="form-group">
       <label>Current Image:</label>

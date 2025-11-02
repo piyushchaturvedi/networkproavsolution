@@ -57,7 +57,7 @@
     font-size: 1.1rem;
     cursor: pointer;
     transition: background-color 0.2s ease;
-  }
+  }`
 
   .settings-form button[type="submit"]:hover {
     background-color: #0056b3;
@@ -370,6 +370,62 @@
         <small>Enter as a JSON array of objects: `[{"name": "Facebook", "url": "#", "img": "URL_TO_IMG"}]`</small>
     </div>
 
+    // In views/admin_settings.ejs, add this block:
+
+    <h2 style="margin-top: 40px;">Homepage Content - Today's Deal</h2>
+    <div class="form-group">
+      <label for="dealSubHeading">Subtitle (Be prompt!):</label>
+      <input type="text" id="dealSubHeading" name="dealSubHeading" value="<%= settings.dealSubHeading %>" placeholder="Be prompt!">
+    </div>
+    <div class="form-group">
+      <label for="dealHeading">Main Heading:</label>
+      <input type="text" id="dealHeading" name="dealHeading" value="<%= settings.dealHeading %>" placeholder="The Today's Deal!">
+    </div>
+    <div class="form-group">
+      <label for="dealContent">Content Text:</label>
+      <textarea id="dealContent" name="dealContent" placeholder="Buy Next-Gen Antivirus..."><%= settings.dealContent %></textarea>
+      <small>The main text describing the deal and promo code.</small>
+    </div>
+    <div class="form-group">
+      <label for="dealButtonText">Button Text:</label>
+      <input type="text" id="dealButtonText" name="dealButtonText" value="<%= settings.dealButtonText %>" placeholder="SHOP NOW →">
+    </div>
+    <div class="form-group">
+      <label for="dealButtonLink">Button Link (URL):</label>
+      <input type="text" id="dealButtonLink" name="dealButtonLink" value="<%= settings.dealButtonLink %>" placeholder="/products">
+    </div>
+
+    <div class="form-group">
+        <label>Deal Product Image:</label>
+        <% if (settings.dealImageUrl) { %>
+            <img src="<%= settings.dealImageUrl %>" alt="Current Deal Image" class="campaign-banner-img-preview">
+            <p><small>Current Image URL/Path: <%= settings.dealImageUrl %></small></p>
+        <% } else { %>
+            <p><small>No deal image set.</small></p>
+        <% } %>
+        
+        <div class="image-options-group">
+            <div>
+                <input type="radio" id="dealImageOptionUrl" name="dealImageOption" value="url" <%= (settings.dealImageUrl && !settings.dealImageUrl.startsWith('/uploads')) ? 'checked' : '' %>>
+                <label for="dealImageOptionUrl">Use Image URL:</label>
+            </div>
+            <div>
+                <input type="text" id="dealImageUrlInput" name="dealImageUrlInput" value="<%= (settings.dealImageUrl && !settings.dealImageUrl.startsWith('/uploads')) ? settings.dealImageUrl : '' %>" placeholder="Enter full image URL">
+            </div>
+        </div>
+        <div class="image-options-group">
+            <div>
+                <input type="radio" id="dealImageOptionUpload" name="dealImageOption" value="upload" <%= (settings.dealImageUrl && settings.dealImageUrl.startsWith('/uploads')) ? 'checked' : '' %>>
+                <label for="dealImageOptionUpload">Upload New Image File:</label>
+            </div>
+            <div>
+                <input type="file" id="dealImageFile" name="dealImageFile" accept="image/*">
+            </div>
+        </div>
+        <small>Select one option to change the image. Uploaded files will be stored in `/public/uploads/products`.</small>
+    </div>
+
+
 
     <h2 style="margin-top: 40px;">Payment & Email Credentials</h2>
     <div class="form-group">
@@ -447,7 +503,8 @@
       .then( editor => {
           disclaimerEditor = editor;
           console.log( 'CKEditor for disclaimer initialized!', editor );
-          editor.setData(`<%= disclaimerContent %>`);
+          // The editor will then interpret the content as HTML.
+          editor.setData(`<%- disclaimerContent %>`);
       } )
       .catch( error => {
           console.error( 'Error initializing CKEditor for disclaimer:', error );

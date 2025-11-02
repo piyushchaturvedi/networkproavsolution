@@ -25,9 +25,21 @@ const uploadTestimonialImageMiddleware = (req, res, next) => req.app.locals.uplo
 
 const settingsUploadFields = multer().fields([
     { name: 'mainLogoFile', maxCount: 1 },
-    { name: 'campaignBannerImageFile', maxCount: 1 }
+    { name: 'campaignBannerImageFile', maxCount: 1 },
+    { name: 'dealImageFile', maxCount: 1 } // <-- ADD THIS LINE
 ]);
 
+const decodeHtmlEntities = (text) => {
+    if (!text) return '';
+    // Decode double-encoded characters first (e.g., &amp;lt; becomes &lt;)
+    text = text.replace(/&amp;/g, '&');
+    // Decode common single-encoded characters (e.g., &lt; becomes <)
+    text = text.replace(/&lt;/g, '<').replace(/&gt;/g, '>');
+    // Decode quotes (which CKEditor often uses)
+    text = text.replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&apos;/g, "'");
+
+    return text;
+};
 
 // Helper for slug generation
 const generateSlug = (title) => {
@@ -105,6 +117,10 @@ router.post('/product/update/:id', isAuthenticated, uploadProductImageMiddleware
         updatedData.rating = parseFloat(updatedData.rating) || 0;
         if (updatedData.longDesc && typeof updatedData.longDesc === 'string') { updatedData.longDesc = updatedData.longDesc.split('\n').map(line => line.trim()).filter(line => line.length > 0); }
 
+        // --- NEW: Handle boolean fields from checkboxes ---
+        updatedData.isFeatured = !!updatedData.isFeatured; // 'true' becomes true, undefined becomes false
+        updatedData.isLoved = !!updatedData.isLoved;       // 'true' becomes true, undefined becomes false
+        // --- END NEW ---
         const product = await Product.findOneAndUpdate({ id: productId }, updatedData, { new: true });
         if (product) { res.redirect('/admin?message=Product updated successfully!'); }
         else { res.status(404).send('Product not found for update.'); }
@@ -480,6 +496,14 @@ router.get('/settings', isAuthenticated, async (req, res) => {
             campaignBannerTextColor: currentSettings.campaignBannerTextColor || '#333333',
             sendCustomerContactConfirmEmail: currentSettings.sendCustomerContactConfirmEmail || false,
             contactRecipientEmail: currentSettings.contactRecipientEmail || 'chaturvedipiyush40@gmail.com',
+            // --- NEW: Today's Deal Settings ---
+            dealHeading: currentSettings.dealHeading || 'The Today\'s Deal!',
+            dealSubHeading: currentSettings.dealSubHeading || 'Be prompt!',
+            dealContent: currentSettings.dealContent || '"Buy Next-Gen Antivirus Security At 50% Discount, Using the Promo Code WELCOME-9909"',
+            dealButtonText: currentSettings.dealButtonText || 'SHOP NOW →',
+            dealButtonLink: currentSettings.dealButtonLink || '/products',
+            dealImageUrl: currentSettings.dealImageUrl || '/image/McAfee-total-protection-1.png',
+            // --- END NEW ---
             message: req.query.message || null,
             error: req.query.error || null
         });
@@ -493,7 +517,7 @@ router.post('/settings/update', isAuthenticated, settingsUploadFields, async (re
     const { themeColor, metaTitle, metaDescription, metaKeywords, paypalClientId, paypalClientSecret, emailUser, emailPass, homePhoneNumber, homeSubtitle, homeHeading, homeDescription, homeButtonText, homeButtonLink, disclaimerHeading, disclaimerContent,
         footerCompanyName, footerCompanyTagline, footerContactEmail, footerContactPhone, footerContactAddress, footerPaymentMethods, footerNewsletterHeading, footerCopyrightText, footerQuickLinksJson, footerSocialIconsJson,
         enableCampaignBanner, campaignBannerHeading, campaignBannerText, campaignBannerButtonText, campaignBannerButtonLink, campaignBannerImageUrlInput, campaignBannerBackgroundColor, campaignBannerTextColor, campaignBannerImageOption,
-        mainLogoUrlOption, mainLogoUrlInput, sendCustomerContactConfirmEmail, contactRecipientEmail, contactAddress, contactEmail, contactPhone
+        mainLogoUrlOption, mainLogoUrlInput, sendCustomerContactConfirmEmail, contactRecipientEmail, contactAddress, contactEmail, contactPhone, dealHeading, dealSubHeading, dealContent, dealButtonText, dealButtonLink, dealImageUrlInput, dealImageFile, dealImageOption
     } = req.body;
 
     try {
@@ -516,7 +540,28 @@ router.post('/settings/update', isAuthenticated, settingsUploadFields, async (re
         await updateSetting('homeButtonText', homeButtonText);
         await updateSetting('homeButtonLink', homeButtonLink);
         await updateSetting('disclaimerHeading', disclaimerHeading);
-        await updateSetting('disclaimerContent', disclaimerContent);
+        // Apply decode function to clean the input before saving
+        await updateSetting('disclaimerContent', decodeHtmlEntities(disclaimerContent));
+
+        // --- NEW: Update Today's Deal Settings ---
+        await updateSetting('dealHeading', dealHeading);
+        await updateSetting('dealSubHeading', dealSubHeading);
+        await updateSetting('dealContent', dealContent);
+        await updateSetting('dealButtonText', dealButtonText);
+        await updateSetting('dealButtonLink', dealButtonLink);
+        
+        let newDealImageUrl;
+        const uploadedDealImage = req.files && req.files['dealImageFile'] ? req.files['dealImageFile'][0] : null;
+        
+        if (dealImageOption === 'upload' && uploadedDealImage) {
+            newDealImageUrl = `/uploads/products/${uploadedDealImage.filename}`; // Assuming it uses the product upload path
+        } else if (dealImageOption === 'url' && dealImageUrlInput) {
+            newDealImageUrl = dealImageUrlInput;
+        } else {
+            newDealImageUrl = req.app.locals.settings.dealImageUrl || '/image/McAfee-total-protection-1.png'; // Fallback
+        }
+        await updateSetting('dealImageUrl', newDealImageUrl);
+        // --- END NEW ---
 
         let newLogoUrl;
         const uploadedMainLogo = req.files && req.files['mainLogoFile'] ? req.files['mainLogoFile'][0] : null;

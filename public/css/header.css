@@ -120,7 +120,7 @@ p.click_here {
 /* 🔹 Responsive Adjustments */
 @media (max-width: 768px) {
   .header-logo-img {
-    max-height: 65px;
+    max-height: 50px;
   }
   .navbar-nav {
     text-align: center;

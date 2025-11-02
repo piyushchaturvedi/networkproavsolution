@@ -16,24 +16,23 @@ router.get('/', async (req, res) => {
   try {
     const testimonials = await Testimonial.find({}).sort({ createdAt: -1 });
 
-    // Fetch all unique categories
-    const categories = await Product.distinct("category");
+    // --- NEW LOGIC: Fetch products explicitly marked as featured ---
+    const featuredProducts = await Product.find({ isFeatured: true })
+      .sort({ createdAt: -1 }) // Sort by newest featured
+      .limit(4) // Limit to display 4 products
+      .lean();
 
-    // For each category, get the latest one product
-    const featuredProductsPromises = categories.map(async (cat) => {
-      return await Product.findOne({ category: cat })
-        .sort({ createdAt: -1 })
-        .lean();
-    });
-
-    const featuredProducts = (await Promise.all(featuredProductsPromises))
-      .filter(p => p !== null)
-      .slice(0, 4); // Optional: show only 4 latest category products
+    // --- NEW LOGIC: Fetch products explicitly marked as loved ---
+    const lovedProducts = await Product.find({ isLoved: true })
+      .sort({ rating: -1 }) // Sort by highest rating
+      .limit(4) // Limit to display 4 products
+      .lean();
 
     res.render('index', {
       pageTitle: res.locals.settings.metaTitle,
       testimonials,
-      featuredProducts
+      featuredProducts,
+      lovedProducts
     });
 
   } catch (error) {
@@ -41,11 +40,88 @@ router.get('/', async (req, res) => {
     res.render('index', {
       pageTitle: res.locals.settings.metaTitle,
       testimonials: [],
-      featuredProducts: []
+      featuredProducts: [],
+      lovedProducts: []
     });
   }
 });
 
+
+// NEW: Product Search Page
+router.get('/products/search', async (req, res) => {
+    try {
+        const searchQuery = req.query.query ? req.query.query.trim() : '';
+
+        if (!searchQuery) {
+            // If search query is empty, redirect to the main products page
+            return res.redirect('/products');
+        }
+
+        // Use a case-insensitive regular expression to search across 
+        // multiple relevant fields (name, shortDesc, brand, category)
+        const searchRegex = new RegExp(searchQuery, 'i');
+        
+        const products = await Product.find({
+            $or: [
+                { name: { $regex: searchRegex } },
+                { shortDesc: { $regex: searchRegex } },
+                { brand: { $regex: searchRegex } },
+                { category: { $regex: searchRegex } }
+            ]
+        }).sort({ name: 1 }); // Sort by name ascending
+
+        // Group the search results by category for consistent display
+        const groupedProducts = products.reduce((acc, product) => {
+            if (!acc[product.category]) { acc[product.category] = []; }
+            acc[product.category].push(product);
+            return acc;
+        }, {});
+
+        res.render('products', { 
+            groupedProducts, 
+            pageTitle: `Search Results for: "${searchQuery}"`
+        });
+
+    } catch (err) {
+        console.error('Error fetching search results:', err);
+        res.status(500).send('Server Error: Could not process search request.');
+    }
+});
+// ... (rest of the shop.js routes continue)
+
+
+// In routes/shop.js (around line 10)
+
+// NEW: API for Search Suggestions
+router.get('/api/products/suggest', async (req, res) => {
+    try {
+        const query = req.query.q ? req.query.q.trim() : '';
+
+        // Only return suggestions if the query is long enough
+        if (query.length < 2) {
+            return res.json([]);
+        }
+
+        // Use a case-insensitive regular expression to search product name and brand, starting from the beginning of the field
+        const searchRegex = new RegExp('^' + query, 'i');
+
+        const suggestions = await Product.find({
+            $or: [
+                { name: { $regex: searchRegex } },
+                { brand: { $regex: searchRegex } }
+            ]
+        })
+        // Select necessary fields only to keep payload small
+        .select('name id image price') 
+        .limit(6) // Limit the number of suggestions
+        .lean();
+
+        res.json(suggestions);
+    } catch (error) {
+        console.error('Error fetching search suggestions:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
 
 
 
