@@ -90,18 +90,14 @@
           const data = await response.json();
 
           if (response.ok) {
-            messageDiv.textContent = data.message;
-            messageDiv.style.color = 'green';
-            messageDiv.style.display = 'block';
-            setTimeout(() => {
-              messageDiv.style.display = 'none';
-            }, 2000);
-            window.location.reload();
+              // Instead of displaying a message and reloading, immediately redirect:
+              window.location.href = '/cart'; 
           } else {
-            messageDiv.textContent = data.message || `Error: ${response.statusText}`;
-            messageDiv.style.color = 'red';
-            messageDiv.style.display = 'block';
-            console.error('Server error response:', data);
+              // Keep the error handling block to inform the user if the add fails
+              messageDiv.textContent = data.message || `Error: ${response.statusText}`;
+              messageDiv.style.color = 'red';
+              messageDiv.style.display = 'block';
+              console.error('Server error response:', data);
           }
         } catch (error) {
           console.error('Error during Add to Cart fetch:', error);

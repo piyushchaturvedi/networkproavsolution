@@ -73,12 +73,10 @@ Official McAfee support and product details are available at www.mcafee.com</p>
                     const data = await response.json();
 
                     if (response.ok) {
-                        messageDiv.textContent = data.message;
-                        messageDiv.style.color = 'green';
-                        messageDiv.style.display = 'block';
-                        setTimeout(() => { messageDiv.style.display = 'none'; }, 2000);
-                        window.location.reload(); 
+                        // Instead of displaying a message and reloading, immediately redirect:
+                        window.location.href = '/cart'; 
                     } else {
+                        // Keep the error handling block to inform the user if the add fails
                         messageDiv.textContent = data.message || `Error: ${response.statusText}`;
                         messageDiv.style.color = 'red';
                         messageDiv.style.display = 'block';

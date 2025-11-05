@@ -18,7 +18,7 @@
          <!-- Dynamic Pages in Footer Quick Links -->
          <% if (footerPages && footerPages.length > 0) { %>
          <% footerPages.forEach(page => { %>
-         <% if(page.slug) { %><li><a href="/page/<%= page.slug %>"><%= page.title %></a></li> <% } %>
+         <% if(page.slug) { %><li><a href="/<%= page.slug %>"><%= page.title %></a></li> <% } %>
          <% }); %>
          <% } %>
 

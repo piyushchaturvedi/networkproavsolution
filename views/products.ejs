@@ -49,16 +49,14 @@
                     console.log('Fetch response data (Products Page):', data); // Debugging log
 
                     if (response.ok) {
-                        messageDiv.textContent = data.message;
-                        messageDiv.style.color = 'green';
-                        messageDiv.style.display = 'block';
-                        setTimeout(() => { messageDiv.style.display = 'none'; }, 2000); // Hide after 2 seconds
-                        window.location.reload(); // Reload to update cart in header
+                        // Instead of displaying a message and reloading, immediately redirect:
+                        window.location.href = '/cart'; 
                     } else {
-                        messageDiv.textContent = data.message || `Error: ${response.statusText}`; // Show more descriptive error
+                        // Keep the error handling block to inform the user if the add fails
+                        messageDiv.textContent = data.message || `Error: ${response.statusText}`;
                         messageDiv.style.color = 'red';
                         messageDiv.style.display = 'block';
-                        console.error('Server error response (Products Page):', data); // Log server error
+                        console.error('Server error response:', data);
                     }
                 } catch (error) {
                     console.error('Error during Add to Cart fetch (Products Page):', error); // Log network/JS error

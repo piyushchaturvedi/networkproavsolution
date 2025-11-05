@@ -3,6 +3,7 @@
 <section class="product-page">
   <!-- <h1>Norton Antivirus Products</h1> -->
    <img class="product_page_banner_img" src="/image/MC.png" />
+   <button style="font-size: 187%; background-color:#fac42b" class="getbetter">Get Better Deal - Chat with us</button>
    <!-- <img class="product_page_banner_img" src="/image/norton.webp" /> -->
 
   <% if (groupedProducts && Object.keys(groupedProducts).length > 0) { %>
@@ -72,12 +73,10 @@
                     const data = await response.json();
 
                     if (response.ok) {
-                        messageDiv.textContent = data.message;
-                        messageDiv.style.color = 'green';
-                        messageDiv.style.display = 'block';
-                        setTimeout(() => { messageDiv.style.display = 'none'; }, 2000);
-                        window.location.reload(); 
+                        // Instead of displaying a message and reloading, immediately redirect:
+                        window.location.href = '/cart'; 
                     } else {
+                        // Keep the error handling block to inform the user if the add fails
                         messageDiv.textContent = data.message || `Error: ${response.statusText}`;
                         messageDiv.style.color = 'red';
                         messageDiv.style.display = 'block';

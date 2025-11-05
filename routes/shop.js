@@ -422,7 +422,7 @@ router.get('/checkout/success', (req, res) => { res.send('<h1>Payment Successful
 router.get('/checkout/cancel', (req, res) => { res.send('<h1>Payment Cancelled</h1><p>Your payment was cancelled. Please try again.</p><a href="/">Go Home</a>'); });
 
 // ROUTE FOR DISPLAYING DYNAMIC CMS PAGES (Publicly accessible)
-router.get('/page/:slug', async (req, res) => {
+router.get('/:slug', async (req, res) => {
     try {
         const page = await Page.findOne({ slug: req.params.slug });
         if (page) { res.render('dynamic_page', { page, pageTitle: page.title }); }

@@ -297,7 +297,8 @@ form button:hover {
 }
 
 .footer-section ul li a:hover {
-  color: #fff;
+  color: #000;
+  font-size: 20px;
 }
 
 .footer-section p {
