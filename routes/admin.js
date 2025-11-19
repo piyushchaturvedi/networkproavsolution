@@ -58,7 +58,7 @@ router.post('/login', async (req, res) => {
         const user = await User.findOne({ username });
         if (user && user.password === password) {
             req.session.user = { id: user._id, username: user.username, role: user.role, email: user.email };
-            res.redirect('/admin');
+            res.redirect('/admin/settings');
         } else {
             res.render('admin_login', { pageTitle: 'Admin Login', errorMessage: 'Invalid admin credentials.' });
         }
@@ -77,7 +77,7 @@ router.get('/logout', (req, res) => {
 
 
 // ADMIN DASHBOARD
-router.get('/', isAuthenticated, async (req, res) => {
+router.get('/product/list', isAuthenticated, async (req, res) => {
     try {
         const products = await Product.find({});
         const message = req.query.message || null;

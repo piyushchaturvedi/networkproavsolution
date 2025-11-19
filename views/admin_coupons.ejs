@@ -1,0 +1,167 @@
+<%- include('_header', { pageTitle: pageTitle, activePage: 'coupons' }) %>
+
+<style>
+/* Styling to improve form appearance, similar to admin_add_product.ejs */
+.coupon-form-container {
+    max-width: 900px;
+    margin: 40px auto;
+    padding: 30px;
+    background-color: #fff;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    border-radius: 8px;
+}
+.coupon-form-container h1, .coupon-form-container h2 {
+    text-align: center;
+    margin-bottom: 20px;
+    color: #333;
+}
+.coupon-form-container label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: bold;
+    color: #555;
+}
+.coupon-form-container input[type="text"],
+.coupon-form-container input[type="number"],
+.coupon-form-container select,
+.coupon-form-container input[type="datetime-local"] {
+    width: calc(100% - 22px);
+    padding: 10px;
+    margin-bottom: 20px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 1rem;
+}
+.targeting-group select {
+    width: 100%;
+    margin-bottom: 15px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+.form-group {
+    margin-bottom: 15px;
+}
+.targeting-options-box {
+    border: 1px solid #f0f0f0;
+    padding: 15px;
+    border-radius: 5px;
+    background-color: #fcfcfc;
+}
+.btn-submit {
+    display: block;
+    width: 100%;
+    padding: 12px 20px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 1.1rem;
+    cursor: pointer;
+    margin-top: 20px;
+}
+.message, .error {
+    /* reuse existing message/error styling */
+}
+</style>
+
+<div class="coupon-form-container">
+    <h1>Coupon Management</h1>
+
+    <% if (message) { %>
+        <p class="message"><%= message %></p>
+    <% } %>
+    <% if (error) { %>
+        <p class="error"><%= error %></p>
+    <% } %>
+
+    <h2>Add New Coupon</h2>
+    <form action="/admin/coupons/add" method="POST">
+        
+        <div class="form-group">
+            <label for="code">Coupon Code (e.g., BLACKFRIDAY10):</label>
+            <input type="text" id="code" name="code" required>
+        </div>
+        <div class="form-group">
+            <label for="discountType">Discount Type:</label>
+            <select id="discountType" name="discountType" required>
+                <option value="percentage">Percentage (%) Discount</option>
+                <option value="fixed">Fixed Amount ($) Discount</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="discountValue">Discount Value:</label>
+            <input type="number" id="discountValue" name="discountValue" min="0.01" step="0.01" required>
+        </div>
+
+        <div class="form-group">
+            <label for="minOrderAmount">Minimum Order Amount ($):</label>
+            <input type="number" id="minOrderAmount" name="minOrderAmount" value="0.00" min="0" step="0.01">
+        </div>
+        <div class="form-group">
+            <label for="usageLimit">Total Usage Limit (-1 for unlimited):</label>
+            <input type="number" id="usageLimit" name="usageLimit" value="-1" min="-1" step="1">
+        </div>
+        <div class="form-group">
+            <label for="expiresAt">Expires At (Optional):</label>
+            <input type="datetime-local" id="expiresAt" name="expiresAt">
+        </div>
+        <div class="form-group" style="display: flex; align-items: center;">
+            <input type="checkbox" id="isActive" name="isActive" checked style="width: auto; margin-right: 10px;">
+            <label for="isActive" style="margin-bottom: 0;">Is Active?</label>
+        </div>
+        
+        <hr>
+
+        <h2>Coupon Targeting</h2>
+        <div class="form-group targeting-options-box">
+            <label for="appliesTo">Applies To:</label>
+            <select id="appliesTo" name="appliesTo" required onchange="toggleTargeting()">
+                <option value="all">All Products (Site-wide)</option>
+                <option value="products">Specific Products</option>
+                <option value="categories">Specific Categories</option>
+            </select>
+        </div>
+
+        <div id="product-targeting" class="targeting-group" style="display: none;">
+            <label>Select Target Products (Ctrl/Cmd + Click to select multiple):</label>
+            <select name="targetProductIds" multiple size="8" id="product-select">
+                <% products.forEach(product => { %>
+                    <option value="<%= product.id %>"><%= product.name %> (ID: <%= product.id %>)</option>
+                <% }); %>
+            </select>
+        </div>
+
+        <div id="category-targeting" class="targeting-group" style="display: none;">
+            <label>Select Target Categories (Ctrl/Cmd + Click to select multiple):</label>
+            <select name="targetCategoryNames" multiple size="5" id="category-select">
+                <% categories.forEach(category => { %>
+                    <option value="<%= category.name %>"><%= category.name %></option>
+                <% }); %>
+            </select>
+        </div>
+
+        <button type="submit" class="btn-submit">Create Coupon</button>
+    </form>
+    
+    </div>
+
+<script>
+    function toggleTargeting() {
+        const type = document.getElementById('appliesTo').value;
+        document.getElementById('product-targeting').style.display = type === 'products' ? 'block' : 'none';
+        document.getElementById('category-targeting').style.display = type === 'categories' ? 'block' : 'none';
+        
+        // Optional: Reset selections when switching modes
+        if (type !== 'products') { 
+            document.getElementById('product-select').selectedIndex = -1; 
+        }
+        if (type !== 'categories') { 
+            document.getElementById('category-select').selectedIndex = -1; 
+        }
+    }
+    
+    // Initialize the toggle on page load
+    document.addEventListener('DOMContentLoaded', toggleTargeting);
+</script>
+
+<%- include('_footer') %>

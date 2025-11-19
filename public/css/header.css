@@ -42,7 +42,7 @@ p.click_here {
 
 
 .header-logo-img {
-  max-height: 50px;
+  max-height: 40px;
   transition: transform 0.3s ease, filter 0.3s ease;
 }
 .products_search_main {

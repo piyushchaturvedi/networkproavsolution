@@ -1,0 +1,66 @@
+<%- include('_header', { pageTitle: pageTitle, activePage: 'subscribers' }) %>
+
+<style>
+  /* Basic styling similar to other admin tables */
+  .admin-subscribers-dashboard {
+    max-width: 1000px;
+    margin: 40px auto;
+    padding: 20px;
+    background-color: #fff;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    border-radius: 8px;
+  }
+  .admin-subscribers-dashboard h1 {
+    text-align: center;
+    margin-bottom: 30px;
+    color: #333;
+  }
+  .subscribers-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+  }
+  .subscribers-table th, .subscribers-table td {
+    border: 1px solid #ddd;
+    padding: 12px;
+    text-align: left;
+    vertical-align: middle;
+  }
+  .subscribers-table th {
+    background-color: #f2f2f2;
+    font-weight: bold;
+  }
+</style>
+
+<div class="admin-subscribers-dashboard">
+  <h1>Newsletter Subscribers</h1>
+
+  <% if (message) { %>
+    <p class="message"><%= message %></p>
+  <% } %>
+
+  <table class="subscribers-table">
+    <thead>
+      <tr>
+        <th>Email Address</th>
+        <th>Subscribed On</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% if (subscribers && subscribers.length > 0) { %>
+        <% subscribers.forEach(sub => { %>
+          <tr>
+            <td><%= sub.email %></td>
+            <td><%= sub.subscribedAt.toLocaleDateString() %> <%= sub.subscribedAt.toLocaleTimeString() %></td>
+          </tr>
+        <% }); %>
+      <% } else { %>
+        <tr>
+          <td colspan="2" style="text-align: center;">No subscribers found.</td>
+        </tr>
+      <% } %>
+    </tbody>
+  </table>
+</div>
+
+<%- include('_footer') %>
