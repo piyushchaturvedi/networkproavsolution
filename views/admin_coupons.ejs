@@ -1,7 +1,8 @@
+// views/admin_coupons.ejs
 <%- include('_header', { pageTitle: pageTitle, activePage: 'coupons' }) %>
 
 <style>
-/* Styling to improve form appearance, similar to admin_add_product.ejs */
+/* Styling for Admin Coupon Form */
 .coupon-form-container {
     max-width: 900px;
     margin: 40px auto;
@@ -37,6 +38,7 @@
     margin-bottom: 15px;
     border: 1px solid #ddd;
     border-radius: 4px;
+    padding: 5px;
 }
 .form-group {
     margin-bottom: 15px;
@@ -46,6 +48,7 @@
     padding: 15px;
     border-radius: 5px;
     background-color: #fcfcfc;
+    margin-bottom: 20px;
 }
 .btn-submit {
     display: block;
@@ -59,8 +62,16 @@
     cursor: pointer;
     margin-top: 20px;
 }
-.message, .error {
-    /* reuse existing message/error styling */
+.coupon-list-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 30px;
+}
+.coupon-list-table th, .coupon-list-table td {
+    border: 1px solid #ddd;
+    padding: 10px;
+    text-align: left;
+    font-size: 0.9em;
 }
 </style>
 
@@ -143,24 +154,83 @@
         <button type="submit" class="btn-submit">Create Coupon</button>
     </form>
     
-    </div>
+    <h2 style="margin-top: 40px;">Existing Coupons</h2>
+    <table class="coupon-list-table">
+        <thead>
+            <tr>
+                <th>Code</th>
+                <th>Discount</th>
+                <th>Applies To</th>
+                <th>Min Amt</th>
+                <th>Used/Limit</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <% if (coupons && coupons.length > 0) { %>
+                <% coupons.forEach(coupon => { %>
+                    <tr>
+                        <td><strong><%= coupon.code %></strong></td>
+                        <td>
+                            <% if (coupon.discountType === 'percentage') { %>
+                                <%= coupon.discountValue %>% OFF
+                            <% } else { %>
+                                $<%= coupon.discountValue.toFixed(2) %> OFF
+                            <% } %>
+                        </td>
+                        <td>
+                            <%= coupon.appliesTo.charAt(0).toUpperCase() + coupon.appliesTo.slice(1) %>
+                            <% if (coupon.appliesTo === 'products') { %>
+                                (<%= coupon.targetProductIds.length %> items)
+                            <% } else if (coupon.appliesTo === 'categories') { %>
+                                (<%= coupon.targetCategoryNames.length %> categories)
+                            <% } %>
+                        </td>
+                        <td>$<%= coupon.minOrderAmount.toFixed(2) %></td>
+                        <td><%= coupon.usedCount %> / <%= coupon.usageLimit === -1 ? '∞' : coupon.usageLimit %></td>
+                        <td>
+                            <span style="color: <%= coupon.isActive ? 'green' : 'red' %>;">
+                                <%= coupon.isActive ? 'Active' : 'Inactive' %>
+                            </span>
+                        </td>
+                        <td>
+                            <a href="#" style="color: blue;">Edit</a> |
+                            <a href="#" style="color: red;">Delete</a>
+                        </td>
+                    </tr>
+                <% }); %>
+            <% } else { %>
+                <tr>
+                    <td colspan="7" style="text-align: center;">No coupons found.</td>
+                </tr>
+            <% } %>
+        </tbody>
+    </table>
+
+</div>
 
 <script>
     function toggleTargeting() {
         const type = document.getElementById('appliesTo').value;
-        document.getElementById('product-targeting').style.display = type === 'products' ? 'block' : 'none';
-        document.getElementById('category-targeting').style.display = type === 'categories' ? 'block' : 'none';
+        const productTargeting = document.getElementById('product-targeting');
+        const categoryTargeting = document.getElementById('category-targeting');
+        
+        productTargeting.style.display = type === 'products' ? 'block' : 'none';
+        categoryTargeting.style.display = type === 'categories' ? 'block' : 'none';
         
         // Optional: Reset selections when switching modes
-        if (type !== 'products') { 
-            document.getElementById('product-select').selectedIndex = -1; 
+        const productSelect = document.getElementById('product-select');
+        const categorySelect = document.getElementById('category-select');
+
+        if (type !== 'products' && productSelect) { 
+            productSelect.selectedIndex = -1; 
         }
-        if (type !== 'categories') { 
-            document.getElementById('category-select').selectedIndex = -1; 
+        if (type !== 'categories' && categorySelect) { 
+            categorySelect.selectedIndex = -1; 
         }
     }
     
-    // Initialize the toggle on page load
     document.addEventListener('DOMContentLoaded', toggleTargeting);
 </script>
 

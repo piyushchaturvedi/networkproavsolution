@@ -11,7 +11,7 @@ import http from 'http';
 import https from 'https';
 import multer from 'multer';
 import MongoStore from 'connect-mongo'; // NEW: Import connect-mongo
-
+import nodemailer from 'nodemailer';
 
 // Database connection
 import connectDB from './db.js'; // Ensure this is importing your connectDB function
@@ -19,7 +19,7 @@ import connectDB from './db.js'; // Ensure this is importing your connectDB func
 // Models
 import Setting from './models/setting.js';
 import Page from './models/page.js';
-
+import Product from './models/product.js';
 
 // Import Route Modules
 import shopRoutes from './routes/shop.js';
@@ -97,6 +97,35 @@ app.locals.uploadCampaignBannerImage = multer({
 
 // --- End Multer Configuration ---
 
+// Pass common services/configs to routes via app.locals
+
+app.locals.generateAccessToken = async (appLocals) => { /* ... */ };
+
+app.locals.getTransporter = (appLocals) => { // <-- ADD/UPDATE THIS FUNCTION
+    // Prioritize credentials from .env, fall back to admin settings
+    const user = process.env.EMAIL_USER || appLocals.settings.emailUser;
+    const pass = process.env.EMAIL_PASS || appLocals.settings.emailPass;
+
+    if (!user || !pass) {
+        console.error("Nodemailer: Email credentials missing.");
+        return null;
+    }
+    
+    // Auto-detect service (like Gmail) for simplified configuration
+    const service = user.toLowerCase().includes('gmail') ? 'gmail' : null;
+    
+    return nodemailer.createTransport({
+        service: service,
+        // If not using a known service, configure host/port (using Gmail convention as an example)
+        host: service ? undefined : 'smtp.yourhost.com', 
+        port: service ? 465 : 587,
+        secure: service ? true : false,
+        auth: {
+            user: user,
+            pass: pass
+        }
+    });
+}; // <-- END ADDED FUNCTION
 
 // Middleware setup
 app.use(express.static(path.join(__dirname, 'public')));
@@ -141,8 +170,64 @@ app.use(async (req, res, next) => {
     // These `res.locals` must be derived from `req.session` which `connect-mongo` manages.
     res.locals.user = req.session.user;
     res.locals.cart = req.session.cart || [];
+
+    // 1. Calculate Subtotal (Always defined first)
+    res.locals.cartSubtotal = res.locals.cart.reduce((total, item) => total + (item.price * item.quantity), 0);
+    let finalPrice = res.locals.cartSubtotal;
+    let discount = 0; // Initialize discount amount
+    
+    res.locals.coupon = req.session.coupon || null;
+
+    // 2. Coupon Discount Calculation Logic
+    if (res.locals.coupon && res.locals.cart.length > 0) {
+        const coupon = res.locals.coupon;
+        
+        // Fetch full product details (including category) for eligibility checks
+        const cartProductIds = res.locals.cart.map(item => item.id);
+        
+        // Ensure Product model is imported correctly at the top of app.js 
+        // (if not, you need to import it: import Product from './models/product.js';)
+        const fullProducts = await Product.find({ id: { $in: cartProductIds } }).lean();
+
+        let eligibleSubtotal = 0;
+
+        for (const item of res.locals.cart) {
+            const product = fullProducts.find(p => p.id === item.id);
+            
+            // Check if item is eligible for discount based on coupon rules
+            const isEligible = (
+                coupon.appliesTo === 'all' ||
+                (coupon.appliesTo === 'products' && coupon.targetProductIds.includes(item.id)) ||
+                (coupon.appliesTo === 'categories' && product && coupon.targetCategoryNames.includes(product.category))
+            );
+
+            if (isEligible) {
+                eligibleSubtotal += item.price * item.quantity;
+            }
+        }
+        
+        // Apply discount only if there's an eligible subtotal
+        if (eligibleSubtotal >= coupon.minOrderAmount) {
+            if (coupon.discountType === 'percentage') {
+                discount = eligibleSubtotal * (coupon.discountValue / 100);
+            } else if (coupon.discountType === 'fixed') {
+                discount = coupon.discountValue; 
+            }
+            
+            // Ensure discount never exceeds the eligible subtotal
+            discount = Math.min(discount, eligibleSubtotal); 
+            finalPrice = res.locals.cartSubtotal - discount;
+        } else {
+             // Coupon failed minimum order check or eligibility check after items were removed
+             req.session.coupon = null;
+        }
+    }
+    // --- Final Assignment of Calculated Totals ---
+
+    res.locals.cartTotalDiscount = discount.toFixed(2); 
+    res.locals.cartTotalPrice = finalPrice.toFixed(2);
+    
     res.locals.cartTotalItems = res.locals.cart.reduce((total, item) => total + item.quantity, 0);
-    res.locals.cartTotalPrice = res.locals.cart.reduce((total, item) => total + (item.price * item.quantity), 0).toFixed(2);
 
     try {
         const settingsArray = await Setting.find({});

@@ -9,7 +9,8 @@ import User from '../models/user.js';
 import Order from '../models/order.js';
 import Page from '../models/page.js';
 import ContactMessage from '../models/contactMessage.js';
-
+import Coupon from '../models/coupon.js';
+import Subscriber from '../models/subscriber.js';
 
 // Home Page
 router.get('/', async (req, res) => {
@@ -46,6 +47,141 @@ router.get('/', async (req, res) => {
   }
 });
 
+// Add this POST route after your /cart/update route (around line 300)
+router.post('/cart/apply-coupon', async (req, res) => {
+    // CRITICAL FIX: Ensure couponCode is defined
+    const { couponCode } = req.body;
+    const cart = req.session.cart || [];
+
+    if (cart.length === 0) {
+        return res.status(400).json({ message: 'Cart is empty. Cannot apply coupon.' });
+    }
+    
+    if (!couponCode) {
+        return res.status(400).json({ message: 'Coupon code is missing.' });
+    }
+
+    try {
+        const coupon = await Coupon.findOne({ code: couponCode.toUpperCase(), isActive: true });
+
+        if (!coupon) { 
+            delete req.session.coupon;
+            return res.status(404).json({ message: 'Invalid or inactive coupon code.' });
+        }
+        
+        if (coupon.expiresAt && new Date() > coupon.expiresAt) {
+            delete req.session.coupon;
+            return res.status(400).json({ message: 'Coupon has expired.' });
+        }
+
+        const cartProductIds = cart.map(item => item.id);
+        const fullProducts = await Product.find({ id: { $in: cartProductIds } }).lean();
+
+        let isAnyProductEligible = false;
+        
+        for (const item of cart) {
+            const product = fullProducts.find(p => p.id === item.id);
+            
+            const isEligible = (
+                coupon.appliesTo === 'all' ||
+                (coupon.appliesTo === 'products' && coupon.targetProductIds.includes(item.id)) ||
+                (coupon.appliesTo === 'categories' && product && coupon.targetCategoryNames.includes(product.category))
+            );
+
+            if (isEligible) {
+                isAnyProductEligible = true;
+                break; 
+            }
+        }
+
+        if (!isAnyProductEligible) {
+            delete req.session.coupon;
+            return res.status(400).json({ message: 'Coupon is not valid for any eligible product in your cart.' });
+        }
+
+        const subtotal = cart.reduce((total, item) => total + (item.price * item.quantity), 0);
+        if (subtotal < coupon.minOrderAmount) { 
+            delete req.session.coupon;
+            return res.status(400).json({ message: `Minimum order amount of $${coupon.minOrderAmount.toFixed(2)} required.` });
+        }
+        
+        // Store the valid coupon in the session (including all targeting details)
+        req.session.coupon = {
+            code: coupon.code,
+            discountType: coupon.discountType,
+            discountValue: coupon.discountValue,
+            appliesTo: coupon.appliesTo,
+            targetProductIds: coupon.targetProductIds,
+            targetCategoryNames: coupon.targetCategoryNames,
+            minOrderAmount: coupon.minOrderAmount
+        };
+
+        res.json({ message: `Coupon ${coupon.code} applied successfully!`, coupon: req.session.coupon });
+
+    } catch (error) { 
+        console.error('Error applying coupon:', error);
+        res.status(500).json({ message: 'Failed to apply coupon due to server error.' });
+    }
+});
+
+
+// Add this POST route to allow removal from the frontend
+router.post('/cart/remove-coupon', (req, res) => {
+    if (req.session.coupon) {
+        delete req.session.coupon;
+        return res.json({ message: 'Coupon removed successfully!' });
+    }
+    res.status(404).json({ message: 'No coupon currently applied.' });
+});
+
+
+router.post('/subscribe', async (req, res) => {
+    const { email } = req.body; // Ensure 'email' is correctly destructured
+
+    if (!email) {
+        return res.status(400).json({ success: false, message: 'Email address is required.' });
+    }
+
+    try {
+        // NOTE: The Subscriber model must be correctly imported at the top of shop.js
+        const newSubscriber = new Subscriber({ email: email });
+        await newSubscriber.save();
+        
+        // Optional: Add email notification logic here if needed.
+        // --- NEW: Send Admin Notification Email ---
+        const dynamicTransporter = req.app.locals.getTransporter(req.app.locals);
+        // Use the Admin Recipient Email from settings or the ENV user as fallback
+        const adminEmailRecipient = req.app.locals.settings.contactRecipientEmail || process.env.EMAIL_USER;
+
+        if (dynamicTransporter && adminEmailRecipient) {
+            const mailOptions = {
+                from: dynamicTransporter.options.auth.user, // Sender email
+                to: adminEmailRecipient, // Admin recipient
+                subject: `NEW SUBSCRIPTION: ${email} has subscribed to the newsletter`,
+                html: `
+                    <p>A new email address has subscribed to your newsletter list:</p>
+                    <h3>Email: ${email}</h3>
+                    <p>You can view all subscribers in the Admin Panel at /admin/subscribers.</p>
+                `,
+            };
+            await dynamicTransporter.sendMail(mailOptions);
+            console.log('Admin notification email sent for new subscription.');
+        } else {
+            console.warn('Nodemailer not configured or recipient missing. Subscription saved, but email notification skipped.');
+        }
+        // --- END NEW ---
+        res.status(201).json({ success: true, message: 'Thank you for subscribing!' });
+
+    } catch (error) {
+        console.error('Subscription error:', error);
+        
+        if (error.code === 11000) {
+            return res.status(409).json({ success: false, message: 'This email is already subscribed.' });
+        }
+
+        res.status(500).json({ success: false, message: 'Failed to subscribe. Please try again.' });
+    }
+});
 
 // NEW: Product Search Page
 router.get('/products/search', async (req, res) => {

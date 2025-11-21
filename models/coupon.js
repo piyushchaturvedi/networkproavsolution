@@ -30,11 +30,11 @@ const CouponSchema = new mongoose.Schema({
         enum: ['all', 'products', 'categories'],
         default: 'all'
     },
-    targetProductIds: { // Stores Product.id strings
+    targetProductIds: { // Array of Product.id strings (used when appliesTo is 'products')
         type: [String], 
         default: []
     },
-    targetCategoryNames: { // Stores Category.name strings
+    targetCategoryNames: { // Array of Category.name strings (used when appliesTo is 'categories')
         type: [String],
         default: []
     },

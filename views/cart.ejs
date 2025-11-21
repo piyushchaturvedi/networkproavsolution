@@ -1,5 +1,4 @@
 <%- include('_header', { pageTitle: pageTitle, activePage: 'cart' }) %>
-
 <style>
   /* Cart Page Specific Styles */
   .cart-page {
@@ -212,11 +211,59 @@
     </div>
 
     <div class="cart-summary">
-      <p>Total: $<span id="cart-total-price"><%= cartTotalPrice %></span></p>
-      <div class="checkout-buttons">
-        <a href="/products" class="continue-shopping">Continue Shopping</a>
-        <a href="/checkout" class="proceed-to-checkout">Proceed to Checkout</a>
-      </div>
+        <div class="coupon-section" style="margin-top: 20px; padding: 20px 0; border-top: 1px dashed #eee;">
+            <h2 style="font-size: 1.2rem; text-align: left; margin-bottom: 15px; color: #333;">Have a Promo Code?</h2>
+            
+            <form id="apply-coupon-form" style="display: flex; gap: 10px; margin-bottom: 10px;">
+                <input type="text" 
+                       id="coupon-input" 
+                       name="couponCode" 
+                       placeholder="Enter coupon code" 
+                       required 
+                       value="<%= coupon ? coupon.code : '' %>"
+                       style="flex-grow: 1; padding: 10px; border: 1px solid #ccc; border-radius: 5px; font-size: 1rem; text-transform: uppercase;">
+                <button type="submit" 
+                        id="apply-coupon-btn"
+                        style="background-color: #007bff; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; transition: background-color 0.2s;">
+                    <%= coupon ? 'Remove' : 'Apply' %>
+                </button>
+            </form>
+            
+            <p id="coupon-message" style="
+                margin-top: 10px; 
+                font-weight: bold; 
+                font-size: 0.9em;
+                text-align: left;
+                color: <%= coupon ? 'green' : 'gray' %>;
+            ">
+                <% if (coupon) { %>
+                    Coupon <%= coupon.code %> is active. Discount: $<%= cartTotalDiscount %>
+                <% } else { %>
+                    Enter a code above.
+                <% } %>
+            </p>
+        </div>
+
+        <p style="font-weight: normal; font-size: 1rem; margin-bottom: 5px; padding-top: 15px; border-top: 1px dashed #eee;">
+            Subtotal: $<%= cartSubtotal.toFixed(2) %>
+        </p>
+        
+        <p style="color: green; font-size: 1rem; margin-bottom: 5px;">
+            Discount: - $<%= cartTotalDiscount %>
+        </p>
+        
+        <p style="font-size: 1.5rem; font-weight: bold; margin-bottom: 15px;">
+            Total: $<span id="cart-total-price"><%= cartTotalPrice %></span>
+        </p>
+        
+        <div class="checkout-buttons">
+            <a href="/products" class="continue-shopping">Continue Shopping</a>
+            <% if (cart && cart.length > 0) { %>
+                <a href="/checkout" class="proceed-to-checkout">Proceed to Checkout</a>
+            <% } else { %>
+                 <button class="proceed-to-checkout" style="background-color: #6c757d; cursor: not-allowed;">Proceed to Checkout</button>
+            <% } %>
+        </div>
     </div>
   <% } else { %>
     <p style="text-align: center;">Your cart is empty. <a href="/products">Start shopping now!</a></p>
@@ -225,7 +272,7 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', () => {
-        // --- Cart Quantity Update Logic ---
+        // --- Cart Quantity Update Logic (MUST BE PRESENT) ---
         const updateCartItem = async (productId, newQuantity) => {
             try {
                 const response = await fetch('/cart/update', {
@@ -234,7 +281,7 @@
                     body: JSON.stringify({ productId: productId, quantity: newQuantity }),
                 });
                 if (response.ok) {
-                    window.location.reload(); // Reload page to reflect cart changes and update totals
+                    window.location.reload(); // Reload page to reflect cart changes and update totals/discount
                 } else {
                     const errorData = await response.json();
                     alert(errorData.message || 'Failed to update cart.');
@@ -245,7 +292,7 @@
             }
         };
 
-        // Event listeners for quantity buttons and remove button
+        // Event listeners for quantity buttons and remove button (simplified for brevity)
         document.querySelectorAll('.increase-quantity').forEach(button => {
             button.addEventListener('click', (event) => {
                 const productId = event.target.dataset.productId;
@@ -260,6 +307,7 @@
                 const productId = event.target.dataset.productId;
                 const input = document.querySelector(`.item-quantity-input[data-product-id="${productId}"]`);
                 let newQuantity = parseInt(input.value) - 1;
+                if (newQuantity < 1) newQuantity = 0; // Use 0 to trigger removal in backend
                 updateCartItem(productId, newQuantity);
             });
         });
@@ -279,19 +327,67 @@
                 updateCartItem(productId, 0); // Set quantity to 0 to remove
             });
         });
+
+
+        // --- NEW: Coupon Application Logic ---
+        const applyCouponForm = document.getElementById('apply-coupon-form');
+        const couponInput = document.getElementById('coupon-input');
+        const couponBtn = document.getElementById('apply-coupon-btn');
+        const couponMessage = document.getElementById('coupon-message');
+        const isCouponActive = couponInput.value !== ''; // Checks if value attribute (from EJS) is present
+
+        if (applyCouponForm) {
+            applyCouponForm.addEventListener('submit', async (event) => {
+                event.preventDefault();
+                
+                // Set loading state
+                couponMessage.textContent = 'Processing...';
+                couponMessage.style.color = 'gray';
+
+                if (isCouponActive) {
+                    // 1. Scenario: Coupon is active and user clicks "Remove"
+                    try {
+                        const response = await fetch('/cart/remove-coupon', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                        });
+                        const data = await response.json();
+                        alert(data.message);
+                        window.location.reload(); 
+                    } catch (error) {
+                         alert('Error removing coupon.');
+                         window.location.reload(); 
+                    }
+                    return;
+                }
+                
+                // 2. Scenario: Coupon is not active and user clicks "Apply"
+                const couponCode = couponInput.value;
+                if (!couponCode) return;
+
+                try {
+                    const response = await fetch('/cart/apply-coupon', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ couponCode: couponCode }),
+                    });
+
+                    const data = await response.json();
+                    if (response.ok) {
+                        alert(data.message);
+                        window.location.reload(); 
+                    } else {
+                        couponMessage.textContent = data.message || 'Validation failed.';
+                        couponMessage.style.color = 'red';
+                    }
+                } catch (error) {
+                    console.error('Network error applying coupon:', error);
+                    couponMessage.textContent = 'Network error. Please try again.';
+                    couponMessage.style.color = 'red';
+                }
+            });
+        }
     });
 </script>
 
 <%- include('_footer') %>
-<script>
-  // Cart total price calculation
-  const calculateCartTotal = () => {
-    let total = 0;
-    document.querySelectorAll('.cart-item').forEach(item => {
-      const price = parseFloat(item.querySelector('.item-price').textContent.replace('$', ''));
-      const quantity = parseInt(item.querySelector('.item-quantity-input').value);
-      total += price * quantity;
-    });
-    document.getElementById('cart-total-price').textContent = total.toFixed(2);
-  };  
-  </script>

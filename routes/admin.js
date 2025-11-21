@@ -14,7 +14,7 @@ import Setting from '../models/setting.js';
 import Testimonial from '../models/testimonial.js';
 import Page from '../models/page.js';
 import ContactMessage from '../models/contactMessage.js';
-
+import Coupon from '../models/coupon.js';
 
 // Middleware: Authenticated and Admin Check (access from app.locals)
 const isAuthenticated = (req, res, next) => req.app.locals.isAuthenticated(req, res, next);
@@ -85,6 +85,68 @@ router.get('/product/list', isAuthenticated, async (req, res) => {
     } catch (error) {
         console.error('Error fetching products for admin dashboard:', error);
         res.status(500).send('Server Error: Could not load admin dashboard.');
+    }
+});
+
+// 1. Add GET Route to display form and coupon list
+router.get('/coupons', isAuthenticated, async (req, res) => {
+    try {
+        const coupons = await Coupon.find({}).sort({ createdAt: -1 });
+        const products = await Product.find({}).select('id name').lean(); 
+        const categories = await Category.find({}).select('name').lean(); 
+        
+        res.render('admin_coupons', { 
+            coupons, 
+            products, 
+            categories, 
+            pageTitle: 'Manage Coupons', 
+            message: req.query.message || null, 
+            error: req.query.error || null 
+        });
+    } catch (error) {
+        console.error('Error fetching coupons for admin:', error);
+        res.status(500).send('Server Error: Could not load coupon management.');
+    }
+});
+
+// 2. Add POST Route to handle form submission
+router.post('/coupons/add', isAuthenticated, async (req, res) => {
+    try {
+        const data = req.body;
+        data.code = data.code.toUpperCase();
+        data.isActive = data.isActive === 'on'; 
+        data.usageLimit = parseInt(data.usageLimit);
+        data.minOrderAmount = parseFloat(data.minOrderAmount);
+        data.discountValue = parseFloat(data.discountValue);
+        
+        // --- Handle Coupon Targeting ---
+        const { appliesTo, targetProductIds, targetCategoryNames } = data;
+        
+        // Convert potential single string values (from single selections) to arrays
+        const productsToTarget = Array.isArray(targetProductIds) ? targetProductIds : (targetProductIds ? [targetProductIds] : []);
+        const categoriesToTarget = Array.isArray(targetCategoryNames) ? targetCategoryNames : (targetCategoryNames ? [targetCategoryNames] : []);
+
+        if (appliesTo === 'products') {
+             data.targetProductIds = productsToTarget;
+             data.targetCategoryNames = [];
+        } else if (appliesTo === 'categories') {
+             data.targetCategoryNames = categoriesToTarget;
+             data.targetProductIds = [];
+        } else {
+             // 'all'
+             data.targetProductIds = [];
+             data.targetCategoryNames = [];
+        }
+        data.appliesTo = appliesTo;
+
+        const newCoupon = new Coupon(data);
+        await newCoupon.save();
+        res.redirect('/admin/coupons?message=Coupon added successfully!');
+    } catch (error) {
+        console.error('Error adding new coupon:', error);
+        let errorMessage = 'Failed to add coupon. Check inputs and ensure code is unique.';
+        if (error.code === 11000) { errorMessage = 'Coupon code already exists.'; }
+        res.redirect('/admin/coupons?error=' + encodeURIComponent(errorMessage));
     }
 });
 
