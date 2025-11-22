@@ -24,6 +24,27 @@ const UserSchema = new mongoose.Schema({
         trim: true,
         lowercase: true
     },
+    // --- NEW FIELDS FOR MANAGEMENT ---
+    isBlocked: { // For admin to disable user access
+        type: Boolean,
+        default: false
+    },
+    fullName: {
+        type: String,
+        trim: true,
+        default: ''
+    },
+    // --- END NEW FIELDS ---
+    // --- NEW FIELDS FOR PASSWORD RESET ---
+    resetToken: {
+        type: String,
+        default: null
+    },
+    resetTokenExpiry: {
+        type: Date,
+        default: null
+    },
+    // --- END NEW FIELDS ---
     createdAt: {
         type: Date,
         default: Date.now

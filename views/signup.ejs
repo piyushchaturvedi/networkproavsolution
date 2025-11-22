@@ -1,12 +1,12 @@
-<%- include('_header', { pageTitle: pageTitle, activePage: 'login' }) %>
+<%- include('_header', { pageTitle: 'Sign Up', activePage: 'signup' }) %>
 
 <style>
-  /* Basic Login Form Styling (similar to your existing login.css but specific to admin) */
+  /* Reuse styling from admin_login.ejs but tailor for customer flow */
   .auth-section {
     display: flex;
     justify-content: center;
     align-items: center;
-    min-height: calc(100vh - 150px); /* Adjust based on header/footer height */
+    min-height: calc(100vh - 150px);
     padding: 40px 20px;
     background-color: #f5f0f1;
   }
@@ -14,7 +14,7 @@
   .auth-box {
     background-color: white;
     padding: 30px;
-    max-width: 400px;
+    max-width: 450px;
     width: 100%;
     box-shadow: 0 5px 15px rgba(0,0,0,0.1);
     border-radius: 8px;
@@ -37,18 +37,18 @@
   }
 
   .auth-box form input {
-    width: calc(100% - 22px); /* Account for padding */
+    width: calc(100% - 22px);
     padding: 12px;
     border: 1px solid #ccc;
     border-radius: 5px;
-    margin-bottom: 20px;
+    margin-bottom: 5px; /* Reduced margin for messages */
     font-size: 1rem;
   }
 
   .auth-box button[type="submit"] {
     width: 100%;
     padding: 12px 20px;
-    background-color: #ef4444;
+    background-color: #28a745;
     color: white;
     border: none;
     border-radius: 5px;
@@ -56,43 +56,56 @@
     font-size: 1.1rem;
     cursor: pointer;
     transition: background-color 0.2s ease;
+    margin-top: 20px;
   }
 
   .auth-box button[type="submit"]:hover {
-    background-color: #d13434;
+    background-color: #218838;
   }
 
+  .message {
+    color: #28a745;
+    margin-bottom: 10px;
+  }
   .error-message {
     color: #dc3545;
     background-color: #f8d7da;
     border: 1px solid #f5c6cb;
     padding: 10px;
     border-radius: 5px;
-    margin-bottom: 20px;
+    margin-bottom: 15px;
     font-size: 0.9rem;
   }
 </style>
 
 <div class="auth-section">
   <div class="auth-box">
-    <h2>Customer Login</h2>
-    <% if (typeof errorMessage !== 'undefined' && errorMessage) { %>
-      <p class="error-message"><%= errorMessage %></p>
+    <h2>Create Account</h2>
+    <% if (message) { %>
+      <p class="message"><%= message %></p>
     <% } %>
-    <form action="/login" method="POST">
-      <label for="username">Username or Email:</label>
-      <input type="text" id="username" name="loginIdentifier" required>
+    <% if (error) { %>
+      <p class="error-message"><%= error %></p>
+    <% } %>
+    
+    <form action="/signup" method="POST">
+      <label for="fullName">Full Name:</label>
+      <input type="text" id="fullName" name="fullName" required value="<%= typeof formData !== 'undefined' ? formData.fullName : '' %>">
+
+      <label for="email">Email:</label>
+      <input type="email" id="email" name="email" required value="<%= typeof formData !== 'undefined' ? formData.email : '' %>">
+
+      <label for="username">Username:</label>
+      <input type="text" id="username" name="username" required value="<%= typeof formData !== 'undefined' ? formData.username : '' %>">
 
       <label for="password">Password:</label>
       <input type="password" id="password" name="password" required>
 
-      <button type="submit">Log In</button>
+      <button type="submit">Sign Up</button>
     </form>
+    
     <p style="margin-top: 20px; font-size: 0.9em;">
-         <a href="/forgot-password">Forgot Password?</a>
-    </p>
-    <p style="margin-top: 20px; font-size: 0.9em;">
-        Don't have an account? <a href="/signup">Sign up here</a>
+        Already have an account? <a href="/login">Login here</a>
     </p>
   </div>
 </div>

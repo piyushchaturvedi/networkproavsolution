@@ -3,7 +3,12 @@
 <section class="product-page">
   <!-- <h1>Norton Antivirus Products</h1> -->
    <img class="product_page_banner_img" src="/image/MC.png" />
-   <button style="font-size: 187%; background-color:#fac42b" class="getbetter">CLICK HERE FOR CHAT ASSISTANCE</button>
+   <!-- <button style="font-size: 187%; background-color:#fac42b" class="getbetter">CLICK HERE FOR CHAT ASSISTANCE</button> -->
+   <div class="fixed-chat-banner">
+    <a href="javascript:void(0)" onclick="activateTawkChat()">
+        <img src="/image/norton.png" alt="Click Here for Chat Assistance" />
+    </a>
+</div>
    <!-- <img class="product_page_banner_img" src="/image/norton.webp" /> -->
 
   <% if (groupedProducts && Object.keys(groupedProducts).length > 0) { %>

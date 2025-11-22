@@ -15,6 +15,7 @@ import Testimonial from '../models/testimonial.js';
 import Page from '../models/page.js';
 import ContactMessage from '../models/contactMessage.js';
 import Coupon from '../models/coupon.js';
+import Subscriber from '../models/subscriber.js';
 
 // Middleware: Authenticated and Admin Check (access from app.locals)
 const isAuthenticated = (req, res, next) => req.app.locals.isAuthenticated(req, res, next);
@@ -565,6 +566,7 @@ router.get('/settings', isAuthenticated, async (req, res) => {
             dealButtonText: currentSettings.dealButtonText || 'SHOP NOW →',
             dealButtonLink: currentSettings.dealButtonLink || '/products',
             dealImageUrl: currentSettings.dealImageUrl || '/image/McAfee-total-protection-1.png',
+            enableCodPayment: true,
             // --- END NEW ---
             message: req.query.message || null,
             error: req.query.error || null
@@ -572,6 +574,22 @@ router.get('/settings', isAuthenticated, async (req, res) => {
     } catch (error) {
         console.error('Error loading settings page:', error);
         res.status(500).send('Server Error: Could not load settings.');
+    }
+});
+
+// --- NEW: SUBSCRIBER MANAGEMENT ---
+router.get('/subscribers', isAuthenticated, async (req, res) => {
+    try {
+        const subscribers = await Subscriber.find({}).sort({ subscribedAt: -1 });
+        res.render('admin_subscribers', { 
+            subscribers, 
+            pageTitle: 'Manage Subscribers',
+            message: req.query.message || null,
+            error: req.query.error || null
+        });
+    } catch (error) {
+        console.error('Error fetching subscribers:', error);
+        res.status(500).send('Server Error: Could not load subscriber list.');
     }
 });
 

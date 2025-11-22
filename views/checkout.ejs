@@ -177,6 +177,12 @@
   <div class="payment-section">
     <h2>Payment Information</h2>
     <% if (cart && cart.length > 0) { %>
+      <!-- COD Confirmation Button (Hidden by default) -->
+      <% if (settings.enableCodPayment) { %>
+      <div id="cod-button-container">
+          <button type="button" class="cod-confirm-btn" onclick="submitCodOrder()">Place COD Order</button>
+      </div>
+      <% } %>
       <div id="paypal-button-container">
           <!-- PayPal buttons will be rendered here by the SDK -->
           <p id="paypal-loading-message">Loading payment options...</p>
@@ -196,6 +202,80 @@
         const paypalContainer = document.getElementById('paypal-button-container');
         const loadingMessage = document.getElementById('paypal-loading-message');
         const paypalClientId = '<%= settings.paypalClientId %>'; // Get client ID from EJS context
+    const codContainer = document.getElementById('cod-button-container');
+    const paymentOptions = document.querySelectorAll('.payment-option');
+    const customerForm = document.getElementById('customer-details-form');
+
+    // --- Payment Method Selector Logic ---
+    paymentOptions.forEach(option => {
+        option.addEventListener('click', (e) => {
+            const radio = option.querySelector('input[type="radio"]');
+            if (radio) radio.checked = true;
+
+            // Update visual selection
+            paymentOptions.forEach(opt => opt.classList.remove('selected'));
+            option.classList.add('selected');
+
+            selectedPaymentMethod = radio.value;
+            
+            // Toggle buttons based on selection
+            if (selectedPaymentMethod === 'COD') {
+                if (codContainer) codContainer.style.display = 'block';
+                if (paypalContainer) paypalContainer.style.display = 'none';
+            } else if (selectedPaymentMethod === 'PAYPAL') {
+                if (codContainer) codContainer.style.display = 'none';
+                if (paypalContainer) paypalContainer.style.display = 'block';
+            }
+        });
+    });
+
+    // Initial state setup (default to PayPal visually and functionally)
+    const initialPaymentOption = document.getElementById('radio-paypal');
+    if (initialPaymentOption) {
+        document.getElementById('option-paypal').classList.add('selected');
+        paypalContainer.style.display = 'block';
+    }
+
+
+    // --- COD Order Submission Handler ---
+    window.submitCodOrder = async function() {
+        if (!customerForm.checkValidity()) {
+            customerForm.reportValidity();
+            return;
+        }
+
+        const customerDetails = {
+            fullName: customerForm.fullName.value, email: customerForm.email.value, phone: customerForm.phone.value,
+            address: customerForm.address.value, city: customerForm.city.value, zipCode: customerForm.zipCode.value, country: customerForm.country.value,
+            paymentMethod: 'COD'
+        };
+
+        const codConfirmBtn = document.querySelector('.cod-confirm-btn');
+        codConfirmBtn.disabled = true;
+        codConfirmBtn.textContent = 'Placing Order...';
+
+        try {
+            const response = await fetch('/checkout/cod-order', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(customerDetails)
+            });
+
+            if (response.ok) {
+                alert('Order placed successfully! Please check your email for confirmation and manual verification steps.');
+                window.location.href = '/checkout/cod-success';
+            } else {
+                const errorData = await response.json();
+                alert(errorData.error || 'Failed to place COD order.');
+            }
+        } catch (error) {
+            console.error('COD order error:', error);
+            alert('A network error occurred while placing the order.');
+        } finally {
+            codConfirmBtn.disabled = false;
+            codConfirmBtn.textContent = 'Place COD Order';
+        }
+    }
 
         if (!cartHasItems) {
             console.log('Cart is empty, PayPal buttons not rendered.');
@@ -304,7 +384,9 @@
         };
 
         // Start checking for PayPal SDK readiness
+        // if (initialPaymentOption && initialPaymentOption.checked) {
         renderPayPalButtons();
+    // }
     });
 </script>
 

@@ -43,51 +43,43 @@
 </head>
 <style>
   /* 1. Set the container to flexbox for proper alignment */
-  .products_search_main {
+.products_search_main {
     width: 100%;
-    /* margin-left: -35px; */
-    display: flex;
-    /* ADDED/UPDATED */
-    align-items: center;
-    /* ADDED/UPDATED: Ensures vertical centering */
-  }
+    margin-left: -35px;
+    display: flex; /* ADDED/UPDATED */
+    align-items: center; /* ADDED/UPDATED: Ensures vertical centering */
+}
 
-  /* 2. Style the input field for merging */
-  .products_search_header {
+/* 2. Style the input field for merging */
+.products_search_header {
     width: 70%;
     padding-block: 8px;
     padding-inline: 15px;
     border: 1px solid #f04444;
     color: #000000;
     border-radius: 10px 0 0 10px;
-    border-right: none;
-    /* ADDED/UPDATED: Removes the right border for merging */
+    border-right: none; /* ADDED/UPDATED: Removes the right border for merging */
     /* Ensure no extra vertical spacing */
     margin-bottom: 0;
-  }
+}
 
-  /* 3. Style the button for merging */
-  .products_search_submit_btn {
+/* 3. Style the button for merging */
+.products_search_submit_btn {
     width: 30%;
     padding-inline: 15px;
     padding-block: 9px;
     border-radius: 0 10px 10px 0;
-    border: 1px solid #f04444;
-    /* Match input border */
-    border-left: none;
-    /* ADDED/UPDATED: Removes the left border for merging */
+    border: 1px solid #f04444; /* Match input border */
+    border-left: none; /* ADDED/UPDATED: Removes the left border for merging */
     /* Ensure no extra vertical spacing */
-    margin-bottom: 0 !important;
-    /* Force removal of any inherited margin */
-    height: 38px;
-    /* Consistent height with the input field */
-    box-sizing: border-box;
-    /* Crucial for correct height calculation */
-  }
+    margin-bottom: 0 !important; /* Force removal of any inherited margin */
+    height: 38px; /* Consistent height with the input field */
+    box-sizing: border-box; /* Crucial for correct height calculation */
+}
 </style>
 
 <body>
-
+  
   <header class="new-header light-theme-header shadow-sm">
     <div class="container-fluid py-2 border-bottom">
       <div class="row align-items-center justify-content-between">
@@ -104,16 +96,21 @@
         </div>
 
         <div class="col-12 col-md-4 text-center text-md-center" style="position: relative;">
-          <form action="/products/search" method="GET" class="products_search_main d-inline-flex align-items-center"
-            style="position: relative; display: flex; align-items: center; margin-bottom: 0;">
-
-            <input type="text" class="products_search_header" name="query" id="global-search-input"
-              placeholder="Search Products Here..." autocomplete="off" />
+          <!-- Using the original custom classes here and relying on the style block above -->
+          <form action="/products/search" method="GET" class="products_search_main d-inline-flex align-items-center" 
+                style="position: relative; display: flex; align-items: center; margin-bottom: 0;">
+                
+            <input type="text" 
+                   class="products_search_header" 
+                   name="query" 
+                   id="global-search-input" 
+                   placeholder="Search Products Here..." 
+                   autocomplete="off"
+            />
 
             <div id="search-loader" style="
                 position: absolute; 
                 top: 50%; 
-                /* Adjust right position based on button size (approx. 90px from the right edge of the whole form) */
                 right: 90px; 
                 transform: translateY(-50%); 
                 color: #f04444;
@@ -121,15 +118,13 @@
                 pointer-events: none;
                 z-index: 1001; 
             ">
-              <i class="fa fa-spinner fa-spin"></i>
+                <i class="fa fa-spinner fa-spin"></i>
             </div>
-            <button type="submit" class="products_search_submit_btn"
-              style="background-color: #ef4444; color: white; border: none; height: 42px;">Search</button>
+            <button type="submit" class="products_search_submit_btn" style="background-color: #ef4444; color: white; border: none; height: 38px;">Search</button>
           </form>
-
+          
           <div id="search-suggestions-container" style="
               position: absolute; 
-              /* FIX: Fixed top value (approx. 40px) to drop it immediately below the search bar */
               top: 40px; 
               left: 50%; 
               transform: translateX(-50%); 
@@ -144,44 +139,20 @@
               border-radius: 0 0 8px 8px;
               overflow: hidden;
           ">
-          </div>
-
-        </div>
-
-        <!-- 🔹 Phone + Cart (Right) -->
-        <!-- <div class="col-12 col-md-8 text-center text-md-end">
-        <div class="d-inline-flex align-items-center gap-3">
+            </div>
           
-          <a href="tel:<%= settings.homePhoneNumber %>" class="text-dark text-decoration-none fw-semibold">
-            <i class="fa fa-phone text-success me-2"></i>
-            <%= settings.homePhoneNumber %>
-          </a>
-
-         
-          <a href="/cart" class="text-dark text-decoration-none position-relative fw-semibold">
-            <i class="fa fa-shopping-cart fa-lg"></i>
-            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-              <%= cartTotalItems %>
-            </span>
-            <span class="ms-2">$<%= cartTotalPrice %></span>
-          </a>
         </div>
-      </div> -->
 
         <div class="col-12 col-md-4 text-center text-md-end">
           <div class="header_cart_help d-inline-flex align-items-center gap-5">
 
             <!-- Support (replaces Phone) -->
-            <div id="supportBtn"
-              class="text-dark text-decoration-none fw-semibold header-support d-flex align-items-center"
-              style="cursor:pointer;">
-              <!-- <i class="fa-solid fa-headset text-primary me-2"></i> -->
-              <img src="/image/24-hours-support.png" />
-              <div class="live_supports">
+            <div id="supportBtn" class="text-dark text-decoration-none fw-semibold header-support d-flex align-items-center" style="cursor:pointer;">
+               <img src="/image/24-hours-support.png" />
+               <div class="live_supports">
                 <span>Live Support</span>
                 <p class="click_here">Click Here</p>
-              </div>
-
+               </div>
             </div>
 
             <!-- Cart -->
@@ -200,40 +171,38 @@
     </div>
 
     <!-- 🔹 Navigation Menu -->
-    <!-- === MENU BAR SECTION === -->
     <div class="menu-bar-bg">
       <nav class="navbar navbar-expand-lg navbar-light py-2 custom-menu-bg">
         <div class="container justify-content-center custom-menu-bg">
-          <!-- Mobile Toggle -->
           <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainMenu">
             <span class="navbar-toggler-icon"></span>
           </button>
 
           <div class="collapse navbar-collapse justify-content-center" id="mainMenu">
             <% 
-              // 1. Manually find the specific dynamic pages using expected slugs/titles
-              // Assuming slug for About Us is 'about-us'
+              // Locate necessary dynamic pages
               const aboutPage = headerPages.find(p => p.slug === 'about-us');
-              
-              // Assuming slug for Terms & Conditions is 'terms-conditions'
               const termsPage = headerPages.find(p => p.slug === 'terms-conditions' || p.title.toUpperCase().includes('TERMS'));
             %>
 
             <ul class="navbar-nav gap-3 text-uppercase fw-semibold">
 
+              <!-- 1. Static Link: HOME -->
               <li class="nav-item">
                 <a href="/" class="nav-link <%= activePage === 'home' ? 'active text-success' : '' %>">HOME</a>
               </li>
 
+              <!-- 2. Dynamic Page: About Us -->
               <% if (aboutPage) { %>
               <li class="nav-item">
-                <a href="/<%= aboutPage.slug %>"
+                <a href="/page/<%= aboutPage.slug %>"
                   class="nav-link <%= activePage === aboutPage.slug ? 'active text-success' : '' %>">
                   <%= aboutPage.title.toUpperCase() %>
                 </a>
               </li>
               <% } %>
 
+              <!-- 3. Category Dropdown -->
               <li class="nav-item dropdown">
                 <a class="nav-link dropdown-toggle" href="#" id="categoryDropdown" role="button"
                   data-bs-toggle="dropdown" aria-expanded="false">
@@ -250,22 +219,25 @@
                 </ul>
               </li>
 
+              <!-- 4. Static Link: CONTACT -->
               <li class="nav-item">
                 <a href="/contact"
                   class="nav-link <%= activePage === 'contact' ? 'active text-success' : '' %>">CONTACT</a>
               </li>
               
+              <!-- 5. Dynamic Page: Terms & Conditions -->
               <% if (termsPage) { %>
               <li class="nav-item">
-                <a href="/<%= termsPage.slug %>"
+                <a href="/page/<%= termsPage.slug %>"
                   class="nav-link <%= activePage === termsPage.slug ? 'active text-success' : '' %>">
                   <%= termsPage.title.toUpperCase() %>
                 </a>
               </li>
               <% } %>
 
+              <!-- Admin Links -->
               <% if (user && user.role === 'admin') { %>
-              <li class="nav-item"><a href="/admin/product/list"
+              <li class="nav-item"><a href="/admin"
                   class="nav-link <%= activePage === 'admin' ? 'active text-success' : '' %>">PRODUCT LIST</a></li>
               <li class="nav-item"><a href="/admin/product/add"
                   class="nav-link <%= activePage === 'add-product' ? 'active text-success' : '' %>">ADD PRODUCT</a></li>
@@ -273,13 +245,14 @@
                   class="nav-link <%= activePage === 'users' ? 'active text-success' : '' %>">USERS</a></li>
               <li class="nav-item"><a href="/admin/orders"
                   class="nav-link <%= activePage === 'orders' ? 'active text-success' : '' %>">ORDERS</a></li>
-              <li class="nav-item"><a href="/admin/coupons"
-                  class="nav-link <%= activePage === 'coupons' ? 'active text-success' : '' %>">COUPONS</a></li>
               <li class="nav-item"><a href="/admin/testimonials"
                   class="nav-link <%= activePage === 'testimonials' ? 'active text-success' : '' %>">TESTIMONIALS</a>
               </li>
               <li class="nav-item"><a href="/admin/pages"
                   class="nav-link <%= activePage === 'pages' ? 'active text-success' : '' %>">CMS PAGES</a></li>
+              <li class="nav-item"><a href="/admin/subscribers"
+                  class="nav-link <%= activePage === 'subscribers' ? 'active text-success' : '' %>">SUBSCRIBERS</a>
+              </li> 
               <li class="nav-item"><a href="/admin/contact-messages"
                   class="nav-link <%= activePage === 'contact-messages' ? 'active text-success' : '' %>">MESSAGES</a>
               </li>
@@ -287,7 +260,8 @@
                   class="nav-link <%= activePage === 'settings' ? 'active text-success' : '' %>">SETTINGS</a></li>
               <% } %>
 
-              <% if (user || activePage === 'admin' || activePage === 'login') { %>
+              <!-- Account Dropdown - Conditional Visibility -->
+              
               <li class="nav-item dropdown">
                 <a class="nav-link dropdown-toggle" href="#" id="accountDropdown" role="button"
                   data-bs-toggle="dropdown" aria-expanded="false">
@@ -295,14 +269,15 @@
                 </a>
                 <ul class="dropdown-menu">
                   <% if (user) { %>
-                  <li><a class="dropdown-item" href="#">My Account (<%= user.username %>)</a></li>
-                  <li><a class="dropdown-item" href="/admin/logout">Logout</a></li>
+                  <li><a class="dropdown-item" href="/profile">My Profile (<%= user.username %>)</a></li> 
+                  <li><a class="dropdown-item" href="/logout">Logout</a></li> 
                   <% } else { %>
                   <li><a class="dropdown-item" href="/login">Login</a></li>
+                  <li><a class="dropdown-item" href="/signup">Sign Up</a></li> 
                   <% } %>
                 </ul>
               </li>
-              <% } %>
+              
             </ul>
           </div>
         </div>
@@ -310,137 +285,120 @@
     </div>
 
   </header>
-  <script type="text/javascript">
-    var Tawk_API = Tawk_API || {},
-      Tawk_LoadStart = new Date();
-    (function () {
-      var s1 = document.createElement("script"),
-        s0 = document.getElementsByTagName("script")[0];
-      s1.async = true;
-      s1.src = 'https://embed.tawk.to/685c654671a033190a6218a0/1iuken7h4';
-      s1.charset = 'UTF-8';
-      s1.setAttribute('crossorigin', '*');
-      s0.parentNode.insertBefore(s1, s0);
-    })();
+   <script type="text/javascript">
+   
+   var Tawk_API = Tawk_API || {},
+     Tawk_LoadStart = new Date();
+   (function () {
+     var s1 = document.createElement("script"),
+       s0 = document.getElementsByTagName("script")[0];
+     s1.async = true;
+     s1.src = 'https://embed.tawk.to/685c654671a033190a6218a0/1iuken7h4';
+     s1.charset = 'UTF-8';
+     s1.setAttribute('crossorigin', '*');
+     s0.parentNode.insertBefore(s1, s0);
+   })();
 
-    // Handle button click to show chat
-    document.addEventListener("DOMContentLoaded", function () {
-      const supportBtn = document.getElementById("supportBtn");
+   // Handle button click to show chat
+   document.addEventListener("DOMContentLoaded", function () {
+     const supportBtn = document.getElementById("supportBtn");
 
-      // --- NEW: Auto-Suggestion Logic (COMPLETE) ---
-      const searchInput = document.getElementById('global-search-input');
-      const suggestionsContainer = document.getElementById('search-suggestions-container');
-      const loader = document.getElementById('search-loader');
-      let debounceTimeout;
+     // --- Auto-Suggestion Logic ---
+     const searchInput = document.getElementById('global-search-input');
+     const suggestionsContainer = document.getElementById('search-suggestions-container');
+     const loader = document.getElementById('search-loader'); 
+     let debounceTimeout;
 
-      if (searchInput && suggestionsContainer && loader) {
 
-        // 1. Renders the fetched product suggestions into the dropdown box
-        const renderSuggestions = (suggestions) => {
-          suggestionsContainer.innerHTML = '';
-          if (suggestions.length === 0) {
-            suggestionsContainer.style.display = 'none';
-            return;
-          }
 
-          suggestions.forEach(product => {
-            const item = document.createElement('a');
-            item.href = `/product/${product.id}`;
-            item.classList.add('suggestion-item');
+     const renderSuggestions = (suggestions) => {
+         suggestionsContainer.innerHTML = '';
+         if (suggestions.length === 0) {
+             suggestionsContainer.style.display = 'none';
+             return;
+         }
 
-            // Inline styles for suggestion item appearance
-            item.style.cssText =
-              'display: flex; align-items: center; padding: 8px 12px; text-decoration: none; color: #333; transition: background-color 0.2s;';
-            item.onmouseover = () => {
-              item.style.backgroundColor = '#f0f0f0';
-            };
-            item.onmouseout = () => {
-              item.style.backgroundColor = 'white';
-            };
+         suggestions.forEach(product => {
+             const item = document.createElement('a');
+             item.href = `/product/${product.id}`;
+             item.classList.add('suggestion-item');
+             item.style.cssText = 'display: flex; align-items: center; padding: 8px 12px; text-decoration: none; color: #333; transition: background-color 0.2s;';
+             item.onmouseover = () => { item.style.backgroundColor = '#f0f0f0'; };
+             item.onmouseout = () => { item.style.backgroundColor = 'white'; };
 
-            const imgUrl = product.image || '/image/default.png';
-            const price = product.price ?
-              `<small style="margin-left: auto; color: #ef4444; font-weight: bold;">$${product.price.toFixed(2)}</small>` :
-              '';
+             const imgUrl = product.image || '/image/default.png'; 
+             const price = product.price ? `<small style="margin-left: auto; color: #ef4444; font-weight: bold;">$${product.price.toFixed(2)}</small>` : '';
 
-            item.innerHTML = `
-                     <img src="${imgUrl}" alt="${product.name}" style="width: 30px; height: 30px; object-fit: contain; margin-right: 10px; border-radius: 4px; flex-shrink: 0;">
-                     <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex-grow: 1;">${product.name}</span>
-                     ${price}
-                 `;
-            suggestionsContainer.appendChild(item);
-          });
+             item.innerHTML = `
+                 <img src="${imgUrl}" alt="${product.name}" style="width: 30px; height: 30px; object-fit: contain; margin-right: 10px; border-radius: 4px; flex-shrink: 0;">
+                 <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex-grow: 1;">${product.name}</span>
+                 ${price}
+             `;
+             suggestionsContainer.appendChild(item);
+         });
 
-          suggestionsContainer.style.display = 'block';
-        };
+         suggestionsContainer.style.display = 'block';
+     };
 
-        // 2. Fetches suggestions from the backend API
-        const fetchSuggestions = async (query) => {
-          if (query.length < 2) {
-            suggestionsContainer.style.display = 'none';
-            loader.style.display = 'none';
-            return;
-          }
+     const fetchSuggestions = async (query) => {
+         if (query.length < 2) {
+             suggestionsContainer.style.display = 'none';
+             loader.style.display = 'none'; 
+             return;
+         }
+         
+         loader.style.display = 'block'; 
 
-          loader.style.display = 'block'; // SHOW LOADER BEFORE FETCH
+         try {
+             const response = await fetch(`/api/products/suggest?q=${encodeURIComponent(query)}`);
+             if (!response.ok) { throw new Error('Failed to fetch suggestions'); }
+             const suggestions = await response.json();
+             renderSuggestions(suggestions);
 
-          try {
-            const response = await fetch(`/api/products/suggest?q=${encodeURIComponent(query)}`);
-            if (!response.ok) {
-              throw new Error('Failed to fetch suggestions');
-            }
-            const suggestions = await response.json();
-            renderSuggestions(suggestions);
-
-          } catch (error) {
-            console.error('Suggestion fetch error:', error);
-            suggestionsContainer.style.display = 'none';
-          } finally {
-            loader.style.display = 'none'; // HIDE LOADER AFTER COMPLETION
-          }
-        };
-
-        // 3. Event listener for user input (with debounce)
+         } catch (error) {
+             console.error('Suggestion fetch error:', error);
+             suggestionsContainer.style.display = 'none';
+         } finally {
+             loader.style.display = 'none'; 
+         }
+     };
+     
+     if (searchInput && suggestionsContainer && loader) { 
         searchInput.addEventListener('input', (event) => {
-          clearTimeout(debounceTimeout);
-          const query = event.target.value.trim();
-          debounceTimeout = setTimeout(() => {
-            fetchSuggestions(query);
-          }, 300); // 300ms debounce
+            clearTimeout(debounceTimeout);
+            const query = event.target.value.trim();
+            debounceTimeout = setTimeout(() => {
+                fetchSuggestions(query);
+            }, 300); 
         });
 
-        // 4. Hide suggestions when clicking outside
         document.addEventListener('click', (event) => {
-          // Use the parent form class to check if click is inside the search area
-          if (!event.target.closest('.products_search_main') && !event.target.closest(
-              '#search-suggestions-container')) {
-            suggestionsContainer.style.display = 'none';
-          }
-        });
-
-        // 5. Ensure suggestions reappear if search input is focused
-        searchInput.addEventListener('focus', (event) => {
-          if (event.target.value.trim().length >= 2) {
-            // Re-fetch only if the container is currently empty or hidden, and the query is valid
-            if (suggestionsContainer.style.display === 'none' || suggestionsContainer.innerHTML === '') {
-              fetchSuggestions(event.target.value.trim());
-            } else {
-              suggestionsContainer.style.display = 'block';
+            if (!event.target.closest('.products_search_main') && !event.target.closest('#search-suggestions-container')) {
+                suggestionsContainer.style.display = 'none';
             }
-          }
         });
-      }
 
-      if (supportBtn) {
-        supportBtn.addEventListener("click", function () {
-          if (typeof Tawk_API !== "undefined" && Tawk_API.maximize) {
-            Tawk_API.maximize(); // Open chat popup
-          } else {
-            alert("Chat is still loading. Please try again in a moment.");
-          }
+        searchInput.addEventListener('focus', (event) => {
+            if (event.target.value.trim().length >= 2) {
+                if(suggestionsContainer.style.display === 'none' || suggestionsContainer.innerHTML === '') {
+                    fetchSuggestions(event.target.value.trim());
+                } else {
+                    suggestionsContainer.style.display = 'block';
+                }
+            }
         });
-      }
-    });
-  </script>
+    }
+
+     if (supportBtn) {
+       supportBtn.addEventListener("click", function () {
+         if (typeof Tawk_API !== "undefined" && Tawk_API.maximize) {
+           Tawk_API.maximize(); // Open chat popup
+         } else {
+           alert("Chat is still loading. Please try again in a moment.");
+         }
+       });
+     }
+   });
+</script>
   <!-- Bootstrap JS Bundle -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>

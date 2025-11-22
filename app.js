@@ -299,7 +299,32 @@ app.use(async (req, res, next) => {
 
 // Pass common services/configs to routes via app.locals
 app.locals.generateAccessToken = async (appLocals) => { /* ... */ };
-app.locals.getTransporter = (appLocals) => { /* ... */ };
+// --- NODEMAILER TRANSPORTER DEFINITION (CRITICAL) ---
+    app.locals.getTransporter = (appLocals) => { 
+        // Prioritize credentials from .env, fall back to admin settings
+        const user = process.env.EMAIL_USER || appLocals.settings.emailUser;
+        const pass = process.env.EMAIL_PASS || appLocals.settings.emailPass;
+
+        if (!user || !pass) {
+            console.error("Nodemailer: Email credentials missing. Check .env or Admin Settings.");
+            return null;
+        }
+        
+        // Use Gmail service if recognizable, otherwise default SMTP settings
+        const service = user.toLowerCase().includes('gmail') ? 'gmail' : null;
+        
+        return nodemailer.createTransport({
+            service: service,
+            host: service ? undefined : process.env.EMAIL_HOST || 'smtp.gmail.com', // Fallback host
+            port: service ? 465 : (process.env.EMAIL_PORT || 587),
+            secure: service ? true : false,
+            auth: {
+                user: user,
+                pass: pass
+            }
+        });
+    }; 
+    // --- END NODEMAILER TRANSPORTER DEFINITION ---
 
 
 // --- Use Route Modules ---

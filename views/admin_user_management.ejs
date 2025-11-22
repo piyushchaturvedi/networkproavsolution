@@ -1,132 +1,55 @@
 <%- include('_header', { pageTitle: pageTitle, activePage: 'users' }) %>
 
 <style>
-  /* Styling for User Management Page */
-  .user-management-dashboard {
-    max-width: 1200px;
-    margin: 40px auto;
-    padding: 20px;
-    background-color: #fff;
-    box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    border-radius: 8px;
-  }
-
-  .user-management-dashboard h1 {
-    text-align: center;
-    margin-bottom: 30px;
-    color: #333;
-  }
-
-  .user-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 20px;
-  }
-
-  .user-table th, .user-table td {
-    border: 1px solid #ddd;
-    padding: 12px;
-    text-align: left;
-    vertical-align: middle;
-  }
-
-  .user-table th {
-    background-color: #f2f2f2;
-    font-weight: bold;
-  }
-
-  .user-table tbody tr:nth-child(even) {
-    background-color: #f9f9f9;
-  }
-
-  .user-table tbody tr:hover {
-    background-color: #f1f1f1;
-  }
-
-  .user-table .action-links a {
+  /* ... existing styles ... */
+  
+  .user-table .action-links .block-link,
+  .user-table .action-links .unblock-link {
     display: inline-block;
     padding: 6px 12px;
     margin-right: 8px;
     border-radius: 5px;
     text-decoration: none;
     font-weight: bold;
+    cursor: pointer;
+    border: none;
     transition: background-color 0.2s ease;
   }
-
-  .user-table .action-links .edit-link {
-    background-color: #007bff;
+  .user-table .action-links .block-link {
+    background-color: #dc3545; /* Red */
     color: white;
   }
-
-  .user-table .action-links .edit-link:hover {
-    background-color: #0056b3;
+  .user-table .action-links .block-link:hover {
+    background-color: #c82333;
   }
-
-  .user-table .action-links .delete-link {
-    background-color: #dc3545;
+  .user-table .action-links .unblock-link {
+    background-color: #28a745; /* Green */
     color: white;
   }
-
-  .user-table .action-links .delete-link:hover {
-    background-color: #bd2130;
+  .user-table .action-links .unblock-link:hover {
+    background-color: #218838;
   }
 
-  /* Responsive Table */
-  @media (max-width: 768px) {
-    .user-management-dashboard {
-      margin: 20px auto;
-      padding: 10px;
-    }
-    .user-table, .user-table thead, .user-table tbody, .user-table th, .user-table td, .user-table tr {
-      display: block;
-    }
-    .user-table thead tr {
-      position: absolute;
-      top: -9999px;
-      left: -9999px;
-    }
-    .user-table tr {
-      margin: 0 0 1rem 0;
-      border: 1px solid #ddd;
-      border-radius: 8px;
-      padding: 10px;
-    }
-    .user-table td {
-      border: none;
-      border-bottom: 1px solid #eee;
-      position: relative;
-      padding-left: 50%;
-      text-align: right;
-    }
-    .user-table td:before {
-      position: absolute;
-      top: 12px;
-      left: 6px;
-      width: 45%;
-      padding-right: 10px;
-      white-space: nowrap;
-      content: attr(data-label);
-      font-weight: bold;
-      text-align: left;
-    }
-    .user-table td:last-child {
-      border-bottom: 0;
-    }
-    .user-table .action-links {
-        text-align: right;
-    }
-  }
+  /* ... existing responsive styles ... */
 </style>
 
 <div class="user-management-dashboard">
   <h1>User Management</h1>
+  <% if (message) { %>
+    <p class="message"><%= message %></p>
+  <% } %>
+  <% if (error) { %>
+    <p class="error-message"><%= error %></p>
+  <% } %>
 
   <table class="user-table">
     <thead>
       <tr>
         <th>Username</th>
+        <th>Full Name</th> <!-- NEW COLUMN -->
         <th>Email</th>
         <th>Role</th>
+        <th>Status</th> <!-- NEW COLUMN -->
         <th>Created At</th>
         <th>Actions</th>
       </tr>
@@ -135,13 +58,25 @@
       <% users.forEach(user => { %>
         <tr>
           <td data-label="Username"><%= user.username %></td>
+          <td data-label="Full Name"><%= user.fullName || 'N/A' %></td> <!-- NEW COLUMN -->
           <td data-label="Email"><%= user.email %></td>
           <td data-label="Role"><%= user.role %></td>
+          <td data-label="Status">
+            <span style="color: <%= user.isBlocked ? 'red' : 'green' %>">
+              <%= user.isBlocked ? 'Blocked' : 'Active' %>
+            </span>
+          </td> <!-- NEW COLUMN -->
           <td data-label="Created At"><%= user.createdAt.toLocaleDateString() %></td>
           <td data-label="Actions" class="action-links">
-            <!-- Add edit/delete user links here (implement routes in app.js later) -->
-            <a href="#" class="edit-link">Edit</a>
-            <a href="#" class="delete-link">Delete</a>
+            <form action="/admin/user/toggle-block/<%= user._id %>" method="POST" style="display:inline-block;">
+                <% if (user.isBlocked) { %>
+                    <button type="submit" class="unblock-link">Unblock</button>
+                <% } else { %>
+                    <button type="submit" class="block-link">Block</button>
+                <% } %>
+            </form>
+            <!-- Add edit/delete user links here (if desired) -->
+            <!-- <a href="#" class="edit-link">Edit</a> -->
           </td>
         </tr>
       <% }); %>

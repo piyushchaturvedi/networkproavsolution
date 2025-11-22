@@ -3,6 +3,11 @@
 <section class="product-page">
   <!-- <h1>AVG Antivirus Products</h1> -->
   <img class="product_page_banner_img" src="/image/avg-banner.jpg" />
+  <div class="fixed-chat-banner">
+    <a href="javascript:void(0)" onclick="activateTawkChat()">
+        <img src="/image/avg-btn.png" alt="Click Here for Chat Assistance" />
+    </a>
+</div>
   <% if (groupedProducts && Object.keys(groupedProducts).length > 0) { %>
     <% for (const category in groupedProducts) { %>
       <div class="product-category">

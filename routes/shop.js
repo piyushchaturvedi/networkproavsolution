@@ -1,6 +1,7 @@
 import express from 'express';
 const router = express.Router();
 import fetch from 'node-fetch';
+import crypto from 'crypto';
 
 // Import Models
 import Product from '../models/product.js';
@@ -46,6 +47,229 @@ router.get('/', async (req, res) => {
     });
   }
 });
+
+
+// Signup Page (GET)
+router.get('/signup', (req, res) => {
+    // If user is already logged in, redirect to profile
+    if (req.session.user) return res.redirect('/profile'); 
+    res.render('signup', { pageTitle: "Sign Up", error: null, message: null, formData: {} }); 
+});
+
+// Signup Submission (POST)
+router.post('/signup', async (req, res) => {
+    const { fullName, email, username, password } = req.body;
+    
+    // Simple Server-Side Validation
+    if (!email || !username || !password || !fullName) {
+        return res.render('signup', { pageTitle: "Sign Up", error: 'All fields are required.', message: null, formData: req.body });
+    }
+    
+    try {
+        const newUser = new User({
+            fullName,
+            email,
+            username,
+            password, // NOTE: In a production app, HASH this password!
+            role: 'customer',
+            isBlocked: false 
+        });
+
+        await newUser.save();
+
+        // Automatically log the user in after successful signup
+        req.session.user = { 
+            id: newUser._id, 
+            username: newUser.username, 
+            role: newUser.role, 
+            email: newUser.email,
+            isBlocked: newUser.isBlocked,
+            fullName: newUser.fullName
+        };
+
+        res.redirect('/profile'); 
+
+    } catch (error) {
+        console.error('Signup error:', error);
+        let errorMessage = 'Registration failed.';
+        if (error.code === 11000) {
+            errorMessage = 'Username or Email already in use. Please try another.';
+        }
+        res.render('signup', { pageTitle: "Sign Up", error: errorMessage, message: null, formData: req.body });
+    }
+});
+
+
+// Login Page (GET)
+router.get('/login', (req, res) => { 
+    if (req.session.user) return res.redirect('/profile'); 
+    res.render('login', { pageTitle: "Login | Customer", errorMessage: null }); 
+});
+
+// Login Submission (POST)
+router.post('/login', async (req, res) => {
+    // loginIdentifier can be username or email
+    const { loginIdentifier, password } = req.body; 
+    
+    try {
+        // Allow login using either username or email
+        const identifier = loginIdentifier.toLowerCase().trim();
+        const user = await User.findOne({ 
+            $or: [{ username: identifier }, { email: identifier }]
+        });
+
+        if (user && user.password === password) {
+            
+            if (user.isBlocked) {
+                return res.render('login', { pageTitle: "Login | Customer", errorMessage: 'Your account has been disabled by the administrator.' });
+            }
+            
+            // Set session data for customer user (or admin)
+            req.session.user = { 
+                id: user._id, 
+                username: user.username, 
+                role: user.role, 
+                email: user.email,
+                isBlocked: user.isBlocked,
+                fullName: user.fullName
+            };
+            
+            // If the user is an admin, redirect them to the admin dashboard
+            if (user.role === 'admin') {
+                return res.redirect('/admin');
+            }
+            
+            res.redirect('/profile'); 
+            
+        } else { 
+            res.render('login', { pageTitle: "Login | Customer", errorMessage: 'Invalid username/email or password.' }); 
+        }
+        
+    } catch (error) {
+        console.error('Login error:', error);
+        res.status(500).render('login', { pageTitle: "Login | Customer", errorMessage: 'An error occurred during login.' });
+    }
+});
+
+
+// Profile Page (Requires Authentication)
+router.get('/profile', async (req, res) => {
+    // Check if user is authenticated
+    if (!req.session.user) {
+        return res.redirect('/login');
+    }
+    
+    // Fetch the latest user data to ensure the 'isBlocked' status is current
+    const user = await User.findById(req.session.user.id).lean();
+    
+    // If user was deleted or fetch failed, destroy session
+    if (!user) {
+        req.session.destroy();
+        return res.redirect('/login');
+    }
+
+    // Check if user was blocked since session started
+    if (user.isBlocked) {
+         req.session.destroy();
+         return res.render('login', { pageTitle: "Login | Customer", errorMessage: 'Your account has been disabled by the administrator. Please log in again.' });
+    }
+
+    res.render('profile', { pageTitle: "My Profile", user: user });
+});
+
+// Logout
+router.get('/logout', (req, res) => { 
+    req.session.destroy(err => {
+        if (err) { console.error('Error destroying session:', err); }
+        // Redirect to homepage after logging out
+        res.redirect('/');
+    });
+});
+
+
+// 5. FORGOT PASSWORD
+router.get('/forgot-password', (req, res) => {
+    res.render('forgot_password', { 
+        pageTitle: "Forgot Password", 
+        message: req.query.message || null, 
+        error: req.query.error || null 
+    });
+});
+
+router.post('/forgot-password', async (req, res) => {
+    const { email } = req.body;
+
+    if (!email) {
+        return res.render('forgot_password', { pageTitle: "Forgot Password", error: 'Email is required.', message: null });
+    }
+
+    try {
+        // Find user by email (only customers, excluding admins for security)
+        const user = await User.findOne({ email, role: { $ne: 'admin' } }); 
+
+        if (!user) {
+            // Send success message even if user isn't found to prevent enumeration attacks
+            return res.render('forgot_password', { 
+                pageTitle: "Forgot Password", 
+                message: 'If an account exists for that email, a password reset link has been sent.',
+                error: null
+            });
+        }
+        
+        // --- SIMULATED TOKEN GENERATION & EMAIL SENDING ---
+        
+        const resetToken = crypto.randomBytes(32).toString('hex');
+        
+        // Initialize Nodemailer Transport
+        const dynamicTransporter = req.app.locals.getTransporter(req.app.locals); 
+        const senderEmail = dynamicTransporter?.options?.auth?.user;
+
+        if (dynamicTransporter && senderEmail) {
+            // NOTE: In a real app, you MUST implement a secure mechanism 
+            // to save this token/expiry hash to the User model.
+            
+            const resetUrl = `http://localhost:3000/reset-password?token=${resetToken}`; // Placeholder URL
+            
+            const mailOptions = {
+                from: senderEmail,
+                to: user.email,
+                subject: 'Password Reset Request',
+                html: `
+                    <p>You requested a password reset for your account on NetworkproAV Solution.</p>
+                    <p>Click the link below to proceed with the reset. This link will expire shortly:</p>
+                    <a href="${resetUrl}" style="background-color: #ef4444; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">
+                        Reset My Password
+                    </a>
+                    <p>If you did not request this, please ignore this email.</p>
+                `,
+            };
+            await dynamicTransporter.sendMail(mailOptions);
+            console.log(`Password reset email sent to ${user.email}. Token: ${resetToken} Link : ${resetUrl}`);
+
+            return res.render('forgot_password', { 
+                pageTitle: "Forgot Password", 
+                message: 'A password reset link has been sent to your email address.',
+                error: null
+            });
+        } else {
+            console.error('Nodemailer configuration missing or failed. Check Admin Settings.');
+            return res.render('forgot_password', { 
+                pageTitle: "Forgot Password", 
+                error: 'Email service error. Please contact support.',
+                message: null
+            });
+        }
+
+    } catch (error) {
+        console.error('Forgot password error:', error);
+        res.render('forgot_password', { 
+            pageTitle: "Forgot Password", 
+            error: 'An unexpected error occurred.',
+            message: null
+        });
+    }
+});
+
 
 // Add this POST route after your /cart/update route (around line 300)
 router.post('/cart/apply-coupon', async (req, res) => {

@@ -425,7 +425,12 @@
         <small>Select one option to change the image. Uploaded files will be stored in `/public/uploads/products`.</small>
     </div>
 
-
+    <!-- NEW: COD Toggle Switch -->
+    <div class="form-group">
+        <input type="checkbox" id="enableCodPayment" name="enableCodPayment" <%= settings.enableCodPayment ? 'checked' : '' %> style="width: auto;">
+        <label for="enableCodPayment" style="display: inline; font-weight: bold; margin-left: 5px;">Enable Cash On Delivery (COD) Payment</label>
+        <small style="display: block;">COD for digital goods implies payment upon manual license verification/delivery.</small>
+    </div>
 
     <h2 style="margin-top: 40px;">Payment & Email Credentials</h2>
     <div class="form-group">

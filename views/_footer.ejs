@@ -156,6 +156,18 @@ async function handleSubscription(event) {
        window.location.href = antivirusLinks[index];
      });
    });
+
+   // Function to activate the Tawk.to chat widget
+function activateTawkChat() {
+    // Tawk_API is a global object provided by the Tawk.to embed script.
+    // .maximize() is the official method to open or maximize the chat window.
+    if (typeof Tawk_API !== "undefined" && Tawk_API.maximize) {
+        Tawk_API.maximize(); 
+    } else {
+        // Fallback or warning if the Tawk API script hasn't loaded yet
+        alert("Chat service is still loading. Please try again in a moment.");
+    }
+};
  </script>
  <!--End of Tawk.to Script-->
 

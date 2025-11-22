@@ -1,0 +1,84 @@
+<%- include('_header', { pageTitle: 'My Profile', activePage: 'profile' }) %>
+
+<style>
+  .profile-container {
+    max-width: 800px;
+    margin: 40px auto;
+    padding: 30px;
+    background-color: #fff;
+    box-shadow: 0 0 15px rgba(0,0,0,0.1);
+    border-radius: 8px;
+  }
+  .profile-container h1 {
+    text-align: center;
+    margin-bottom: 30px;
+    color: #333;
+  }
+  .profile-info {
+    font-size: 1.1rem;
+    line-height: 1.8;
+  }
+  .profile-info strong {
+    display: inline-block;
+    width: 150px;
+    color: #555;
+  }
+  .profile-section {
+    padding: 20px 0;
+    border-bottom: 1px solid #eee;
+  }
+  .profile-section:last-child {
+    border-bottom: none;
+  }
+  .status-badge {
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-weight: bold;
+    color: white;
+  }
+  .status-active { background-color: #28a745; }
+  .status-blocked { background-color: #dc3545; }
+  .logout-btn {
+    margin-top: 30px;
+    padding: 10px 20px;
+    background-color: #ffc107;
+    color: #333;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    text-decoration: none;
+    display: inline-block;
+  }
+</style>
+
+<div class="profile-container">
+  <h1>Welcome, <%= user.username %>!</h1>
+
+  <div class="profile-section">
+    <h2>Account Details</h2>
+    <div class="profile-info">
+      <p><strong>Full Name:</strong> <%= user.fullName || 'N/A' %></p>
+      <p><strong>Username:</strong> <%= user.username %></p>
+      <p><strong>Email:</strong> <%= user.email %></p>
+      <p><strong>Role:</strong> <%= user.role.charAt(0).toUpperCase() + user.role.slice(1) %></p>
+      <p>
+        <strong>Status:</strong> 
+        <% if (user.isBlocked) { %>
+          <span class="status-badge status-blocked">BLOCKED</span>
+        <% } else { %>
+          <span class="status-badge status-active">Active</span>
+        <% } %>
+      </p>
+    </div>
+  </div>
+
+  <div class="profile-section">
+    <h2>Recent Orders</h2>
+    <p>Orders history will be displayed here.</p>
+  </div>
+
+  <a href="/logout" class="logout-btn">Log Out</a>
+</div>
+
+<%- include('_footer') %>

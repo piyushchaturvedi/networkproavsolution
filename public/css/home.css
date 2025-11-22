@@ -1133,13 +1133,42 @@ img {
   }
 }
 
+/* In public/css/home.css, add this block: */
 
+.fixed-chat-banner {
+    width: 100%;
+    margin-top: 30px; /* Space below the main hero/banner section */
+    margin-bottom: 30px; /* Space above content */
+    padding: 0;
+    text-align: center;
+}
 
+.fixed-chat-banner a {
+    display: block; /* Ensure it's a block element to respect max-width */
+    width: 100%;
+    max-width: 450px; /* Adjusted max-width to look like a clean banner button */
+    margin: 0 auto; /* CRITICAL FIX: Centers the block element horizontally */
+    cursor: pointer;
+    text-decoration: none;
+}
 
+.fixed-chat-banner img {
+    width: 100%;
+    height: auto;
+    display: block;
+    transition: transform 0.2s;
+    border-radius: 8px; 
+}
 
+.fixed-chat-banner img:hover {
+    transform: scale(1.015);
+    box-shadow: 0 20px 15px rgba(0, 0, 0, 0.15);
+}
 
-
-
-
-
-
+/* Ensure mobile responsiveness if needed */
+@media (max-width: 768px) {
+    .fixed-chat-banner {
+        margin-top: 20px;
+        margin-bottom: 20px;
+    }
+}
