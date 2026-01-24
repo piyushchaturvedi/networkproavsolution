@@ -53,15 +53,17 @@
 </style>
 
 <div class="profile-container">
-  <h1>Welcome, <%= user.username %>!</h1>
+  <h1>Welcome, <%= user.fullName %>!</h1>
 
   <div class="profile-section">
-    <h2>Account Details</h2>
+    <h2>Profile Details</h2>
     <div class="profile-info">
-      <p><strong>Full Name:</strong> <%= user.fullName || 'N/A' %></p>
-      <p><strong>Username:</strong> <%= user.username %></p>
+      <p><strong>First Name:</strong> <%= user.firstName || 'N/A' %></p>
+      <p><strong>Last Name:</strong> <%= user.lastName || 'N/A' %></p>
       <p><strong>Email:</strong> <%= user.email %></p>
-      <p><strong>Role:</strong> <%= user.role.charAt(0).toUpperCase() + user.role.slice(1) %></p>
+      <p><strong>Phone:</strong> <%= user?.phone %></p>
+      <p><strong>Address:</strong> <%= user?.address %></p>
+      <!-- <p><strong>Role:</strong> <%= user.role.charAt(0).toUpperCase() + user.role.slice(1) %></p> -->
       <p>
         <strong>Status:</strong> 
         <% if (user.isBlocked) { %>

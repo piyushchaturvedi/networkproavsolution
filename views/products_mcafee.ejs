@@ -4,9 +4,16 @@
   <img class="product_page_banner_img" src="/image/mca.png" />
   <!-- <h1>McAfee Antivirus Products</h1> -->
 
-  <div class="fixed-chat-banner">
+  <!-- <div class="fixed-chat-banner">
     <a href="javascript:void(0)" onclick="activateTawkChat()">
         <img src="/image/mcafee.png" alt="Click Here for Chat Assistance" />
+    </a>
+</div> -->
+
+<div class="chat-btn-wrapper fixed-chat-banner">
+    <a href="javascript:void(0)" onclick="activateTawkChat()" class="chat-btn" style="background-color: #9c1b20;
+    color: #ffffff;">
+        CLICK HERE FOR CHAT ASSISTANCE
     </a>
 </div>
 
@@ -16,7 +23,7 @@
         <h2><%= category %></h2>
         <h4>Know Before You Buy — Clear Your Doubts, Then Choose the Right Antivirus.</h4>
         <p>NetworkproAV Solution is an independent online store and certified reseller under various official reseller programs, offering genuine McAfee products such as McAfee Advanced, McAfee Premium and McAfee Total Protection. These trusted tools help safeguard your devices and personal information from viruses, malware, and online threats. Once your order is placed, the product key is delivered directly to your registered email — fast, secure, and hassle-free.Every product listed on our website is presented with complete clarity and transparency. Prices are independently set with no hidden charges — what you see is exactly what you pay.We acknowledge that all trademarks, logos, and brand names belong to their respective owners. We make no claim of ownership; these names are used solely to ensure accurate product representation.At NetworkproAV Solution, we follow fair business practices, comply with all industry guidelines, and prioritize honest service and customer satisfaction. We ensure clear pricing, reliable delivery timelines, and transparent communication with every order.
-Official McAfee support and product details are available at www.mcafee.com</p>
+Official McAfee support and product details are available at <a href="https://www.mcafee.com" target="_blank" rel="noopener noreferrer">www.mcafee.com</a></p>
         <div class="product-grid"> <!-- This is the div that needs to be the grid container -->
           <% groupedProducts[category].forEach(product => { %>
             <div class="product-card">

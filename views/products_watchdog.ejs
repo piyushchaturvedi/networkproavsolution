@@ -3,9 +3,16 @@
 <section class="product-page">
   <!-- <h1>Watchdog Antimalware Products</h1> -->
   <img class="product_page_banner_img" src="/image/watchdog-banner.jpg" />
-  <div class="fixed-chat-banner">
+  <!-- <div class="fixed-chat-banner">
     <a href="javascript:void(0)" onclick="activateTawkChat()">
         <img src="/image/bitdefender-btn.png" alt="Click Here for Chat Assistance" />
+    </a>
+</div> -->
+
+<div class="chat-btn-wrapper fixed-chat-banner">
+    <a href="javascript:void(0)" onclick="activateTawkChat()" class="chat-btn" style="background-color: #e32819;
+    color: #ffffff;">
+        CLICK HERE FOR CHAT ASSISTANCE
     </a>
 </div>
   <% if (groupedProducts && Object.keys(groupedProducts).length > 0) { %>
@@ -14,7 +21,7 @@
         <h2><%= category %></h2>
         <h4>Know Before You Buy — Clear Your Doubts, Then Choose the Right Antivirus.</h4>
         <p>NetworkproAV Solution is an independent online store and certified reseller under various official reseller programs, offering genuine Watchdog products such as Watchdog Anti-Malware, Watchdog Anti-Virus, and Watchdog Total Security.These trusted tools provide powerful protection for your devices and data, helping safeguard your system from malware, ransomware, and online threats. Once your order is placed, the product key is delivered directly to your registered email — fast, secure, and hassle-free.Every product listed on our website is presented with complete clarity and transparency. Prices are independently set with no hidden charges — what you see is exactly what you pay.We acknowledge that all trademarks, logos, and brand names belong to their respective owners. We make no claim of ownership; these names are used solely to ensure accurate product representation.At NetworkproAV Solution, we follow fair business practices, comply with all industry guidelines, and prioritize honest service and customer satisfaction. We ensure clear pricing, reliable delivery timelines, and transparent communication with every order.
-Official Watchdog support and product details are available at www.watchdog.com</p>
+Official Watchdog support and product details are available at <a href="https://www.watchdog.com" target="_blank" rel="noopener noreferrer">www.watchdog.com</a></p>
         <div class="product-grid"> <!-- This is the div that needs to be the grid container -->
           <% groupedProducts[category].forEach(product => { %>
             <div class="product-card">

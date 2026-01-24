@@ -3,9 +3,16 @@
 <section class="product-page">
   <!-- <h1>Avast Antivirus Products</h1> -->
   <img class="product_page_banner_img" src="/image/avast-banner.jpg" />
-<div class="fixed-chat-banner">
+<!-- <div class="fixed-chat-banner">
     <a href="javascript:void(0)" onclick="activateTawkChat()">
         <img src="/image/avast-btn.png" alt="Click Here for Chat Assistance" />
+    </a>
+</div> -->
+
+<div class="chat-btn-wrapper fixed-chat-banner">
+    <a href="javascript:void(0)" onclick="activateTawkChat()" class="chat-btn" style="background-color: #ff790e;
+    color: #ffffff;">
+        CLICK HERE FOR CHAT ASSISTANCE
     </a>
 </div>
   <% if (groupedProducts && Object.keys(groupedProducts).length > 0) { %>
@@ -23,7 +30,7 @@
       ownership; these names are used solely to ensure accurate product representation.
       At NetworkproAV Solution, we follow fair business practices, comply with all industry guidelines, and prioritize
       honest service and customer satisfaction. We ensure clear pricing, reliable delivery timelines, and transparent
-      communication with every order. Official Avast support and product details are available at www.avast.com</p>
+      communication with every order. Official Avast support and product details are available at <a href="https://www.avast.com" target="_blank" rel="noopener noreferrer">www.avast.com</a></p>
     <div class="product-grid">
       <!-- This is the div that needs to be the grid container -->
       <% groupedProducts[category].forEach(product => { %>

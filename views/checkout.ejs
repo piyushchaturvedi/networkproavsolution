@@ -1,393 +1,405 @@
+<!-- Cleaned and fully functional checkout page template with COD and PayPal integration -->
 <%- include('_header', { pageTitle: pageTitle, activePage: 'cart' }) %>
 
 <style>
-  /* Checkout Page Specific Styles */
+  .checkout-page-container { max-width: 900px; margin: 40px auto; padding: 30px; background: #fff; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+  .checkout-section { margin-bottom: 30px; }
+  .section-title { font-size: 1.6rem; font-weight: bold; border-bottom: 2px solid var(--primary-color); padding-bottom: 8px; margin-bottom: 20px; }
+  .details-form input, .details-form textarea { width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 5px; }
+  .summary-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px dashed #ddd; }
+  .order-total { text-align: right; font-size: 1.4rem; font-weight: bold; margin-top: 15px; }
+
+  #paypal-button-container { margin-top: 20px; padding: 15px; border: 1px solid var(--primary-color); border-radius: 8px; min-height: 60px; display: flex; justify-content: center; align-items: center; flex-direction: column; }
+  #cod-button-container { margin-top: 15px; text-align: center; }
+  .cod-confirm-btn { background: var(--primary-color); color: #fff; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; }
+
+  /* ✅ FIXED RESPONSIVE DESIGN */
+.checkout-page-container {
+  max-width: 900px;
+  margin: 40px auto;
+  padding: 30px;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  font-family: "Poppins", sans-serif;
+}
+
+.checkout-section {
+  margin-bottom: 30px;
+}
+
+/* Section heading underline fix */
+.section-title, .checkout-page-container .section-title {
+  font-size: 1.6rem;
+  font-weight: 600;
+  border-bottom: 2px solid #e63946;
+  padding-bottom: 8px;
+  margin-bottom: 20px;
+  color: #222;
+}
+
+/* Form layout fix */
+.details-form input,
+.details-form textarea,
+.details-form select {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 15px;
+  border: 1.5px solid #ccc;
+  border-radius: 6px;
+  font-size: 1rem;
+  transition: 0.2s ease;
+}
+
+/* Select fields row fix */
+.country-state-city-row {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(3, 1fr);
+  margin-bottom: 15px;
+}
+
+.country-state-city-row select,
+.country-state-city-row input {
+  height: 45px;       /* equal height */
+  font-size: 1rem;
+  padding: 10px;
+  border: 1.5px solid #ddd;
+  border-radius: 5px;
+  width: 100%;
+  min-width: 0;
+}
+
+/* Fix dropdown alignment issue */
+.country-state-city-row select {
+  margin: 0;
+  width: 100%;
+  min-width: 0;
+}
+
+/* Hover/Focus UI fix */
+.details-form input:focus,
+.details-form textarea:focus,
+.details-form select:focus {
+  border-color: #e63946;
+  outline: none;
+  box-shadow: 0 0 4px rgba(230,57,70,0.3);
+}
+
+/* Order summary fix */
+.summary-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-bottom: 1px dashed #ddd;
+  font-size: 1.05rem;
+  color: #333;
+}
+
+.order-total {
+  text-align: right;
+  font-size: 1.35rem;
+  font-weight: 600;
+  margin-top: 15px;
+  color: #000;
+}
+
+/* Buttons center alignment fix */
+#cod-button-container,
+#paypal-button-container {
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+/* COD button styling fix */
+.cod-confirm-btn {
+  background: #e63946;
+  color: #fff;
+  padding: 12px 28px;
+  border: none;
+  border-radius: 6px;
+  font-size: 1.1rem;
+  font-weight: 500;
+  cursor: pointer;
+  width: auto;
+  min-width: 180px;
+  transition: 0.2s ease;
+}
+
+.cod-confirm-btn:hover {
+  opacity: 0.92;
+  transform: translateY(-1px);
+}
+
+/* 📱 MOBILE RESPONSIVE */
+@media (max-width: 768px) {
+  .country-state-city-row {
+    grid-template-columns: 1fr; /* Stack on tablet/mobile */
+  }
+}
+
+@media (max-width: 480px) {
   .checkout-page-container {
-    max-width: 900px;
-    margin: 40px auto;
-    padding: 30px;
-    background-color: #fff;
-    box-shadow: 0 0 15px rgba(0,0,0,0.1);
-    border-radius: 8px;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 30px;
+    margin: 20px;
+    padding: 22px;
   }
 
-  .checkout-page-container h1 {
-    width: 100%;
-    text-align: center;
-    margin-bottom: 30px;
-    color: #333;
-  }
-
-  .customer-details-section, .order-summary-section {
-    flex: 1 1 45%; /* Approximately half width */
-    min-width: 300px;
-  }
-
-  .customer-details-section h2, .order-summary-section h2 {
-    font-size: 1.8rem;
-    margin-bottom: 20px;
-    color: #333;
-    border-bottom: 2px solid var(--primary-color); /* Dynamic color */
-    padding-bottom: 10px;
-  }
-
-  .customer-details-section form label {
-    display: block;
-    margin-bottom: 8px;
-    font-weight: bold;
-    color: #555;
-  }
-
-  .customer-details-section form input[type="text"],
-  .customer-details-section form input[type="email"],
-  .customer-details-section form input[type="tel"],
-  .customer-details-section form textarea {
-    width: calc(100% - 22px);
-    padding: 10px;
-    margin-bottom: 20px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    font-size: 1rem;
-  }
-
-  .customer-details-section form textarea {
-    resize: vertical;
-    min-height: 80px;
-  }
-
-  .order-summary-items .summary-item {
-    display: flex;
-    justify-content: space-between;
-    padding: 10px 0;
-    border-bottom: 1px dashed #eee;
-    font-size: 1rem;
-  }
-
-  .order-summary-items .summary-item:last-child {
-    border-bottom: none;
-  }
-
-  .order-summary-total {
-    text-align: right;
+  .section-title {
     font-size: 1.4rem;
-    font-weight: bold;
-    margin-top: 20px;
-    padding-top: 15px;
-    border-top: 2px solid var(--primary-color); /* Dynamic color */
   }
 
-  /* Styling for PayPal button container */
-  #paypal-button-container {
-      margin-top: 30px;
-      width: 100%; /* Ensure it takes full width of its container */
-      max-width: 300px; /* Limit max width for better appearance */
-      margin-left: auto;
-      margin-right: auto;
-      border: 2px solid var(--primary-color); /* Dynamic color */
-      padding: 10px; /* Add some padding */
-      border-radius: 5px; /* Rounded corners */
-      box-shadow: 0 4px 8px rgba(0, 123, 255, 0.2); /* Keep generic shadow or make dynamic via JS */
-      text-align: center; /* Center the buttons inside */
-      min-height: 50px; /* Ensure space for buttons even if not rendered */
-      display: flex; /* Use flex to center potential message */
-      align-items: center;
-      justify-content: center;
-      flex-direction: column;
+  .cod-confirm-btn {
+    font-size: 1rem;
+    padding: 10px 22px;
+    min-width: 150px;
   }
+}
 
-  .payment-section {
-      margin-top: 30px;
-      text-align: center;
-      width: 100%;
-  }
-
-  .payment-section h2 {
-      font-size: 1.8rem;
-      margin-bottom: 20px;
-      color: #333;
-      border-bottom: 2px solid var(--primary-color); /* Dynamic color */
-      padding-bottom: 10px;
-  }
-
-  /* Responsive */
-  @media (max-width: 768px) {
-    .checkout-page-container {
-      flex-direction: column;
-      padding: 15px;
-      margin: 20px auto;
-    }
-    .customer-details-section, .order-summary-section {
-      min-width: unset;
-      width: 100%;
-    }
-  }
 </style>
 
 <div class="checkout-page-container">
-  <h1>Checkout</h1>
 
-  <div class="customer-details-section">
-    <h2>Customer Details</h2>
-    <form id="customer-details-form">
-      <label for="fullName">Full Name:</label>
-      <input type="text" id="fullName" name="fullName" value="<%= customer ? customer.fullName : '' %>" required>
+  <!-- Customer Details -->
+  <div class="checkout-section">
+    <h2 class="section-title">Customer Details</h2>
+    <form id="customer-details-form" class="details-form">
+      <input type="text" id="firstName" name="firstName" placeholder="First Name" value="<%= customer?.firstName || '' %>" required>
+      <input type="text" id="lastName" name="lastName" placeholder="Last Name" value="<%= customer?.lastName || '' %>" required>
+      <input type="email" id="email" name="email" placeholder="Email" value="<%= customer?.email || '' %>" required>
+      <input type="tel" id="phone" name="phone" placeholder="Phone" value="<%= customer?.phone || '' %>" required>
+      <textarea id="address" name="address" placeholder="Billing Address" required><%= customer?.address || '' %></textarea>
+      <div class="country-state-city-row">
+      <select id="country" name="country" required>
+  <option value="">Select Country</option>
+</select>
 
-      <label for="email">Email:</label>
-      <input type="email" id="email" name="email" value="<%= customer ? customer.email : '' %>" required>
+<select id="state" name="state">
+  <option value="">Select State</option>
+</select>
 
-      <label for="phone">Phone Number:</label>
-      <input type="tel" id="phone" name="phone" value="<%= customer ? customer.phone : '' %>" required>
-
-      <label for="address">Shipping Address:</label>
-      <textarea id="address" name="address" rows="3" required><%= customer ? customer.address : '' %></textarea>
-
-      <label for="city">City:</label>
-      <input type="text" id="city" name="city" value="<%= customer ? customer.city : '' %>" required>
-
-      <label for="zipCode">Zip Code:</label>
-      <input type="text" id="zipCode" name="zipCode" value="<%= customer ? customer.zipCode : '' %>" required>
-
-      <label for="country">Country:</label>
-      <input type="text" id="country" name="country" value="<%= customer ? customer.country : '' %>" required>
+<input type="text" id="city" name="city" placeholder="Enter your city" required />
+</div>
+      <input type="text" id="postalCode" name="postalCode" placeholder="Zip Code / Postal Code" value="<%= customer?.postalCode || '' %>" required>
     </form>
   </div>
 
-  <div class="order-summary-section">
-    <h2>Order Summary</h2>
-    <div class="order-summary-items">
-      <% if (cart && cart.length > 0) { %>
-        <% cart.forEach(item => { %>
-          <div class="summary-item">
-            <span><%= item.name %> (x<%= item.quantity %>)</span>
-            <span>$<%= (item.price * item.quantity).toFixed(2) %></span>
-          </div>
-        <% }); %>
-      <% } else { %>
-        <p style="text-align: center;">Your cart is empty.</p>
-      <% } %>
-    </div>
-    <div class="order-summary-total">
-      Total: $<%= cartTotalPrice %>
-    </div>
-  </div>
+  <!-- Order Summary -->
+  <div class="checkout-section">
+    <h2 class="section-title">Order Summary</h2>
 
-  <div class="payment-section">
-    <h2>Payment Information</h2>
-    <% if (cart && cart.length > 0) { %>
-      <!-- COD Confirmation Button (Hidden by default) -->
-      <% if (settings.enableCodPayment) { %>
-      <div id="cod-button-container">
-          <button type="button" class="cod-confirm-btn" onclick="submitCodOrder()">Place COD Order</button>
-      </div>
-      <% } %>
-      <div id="paypal-button-container">
-          <!-- PayPal buttons will be rendered here by the SDK -->
-          <p id="paypal-loading-message">Loading payment options...</p>
-      </div>
+    <% if (cart?.length) { %>
+      <% cart.forEach(item => { %>
+        <div class="summary-item">
+          <span><%= item.name %> (x<%= item.quantity %>)</span>
+          <span>$<%= (item.price * item.quantity).toFixed(2) %></span>
+        </div>
+      <% }) %>
+
+      <div class="order-total">Total: $<%= cartTotalPrice %></div>
+
     <% } else { %>
-      <p>No items in cart to checkout.</p>
+      <p>Your cart is empty.</p>
     <% } %>
   </div>
+
+  <!-- Payment Section -->
+  <div class="checkout-section">
+    <h2 class="section-title">Payment</h2>
+<div id="form-error-msg" style="display:none; color:#fff; background:#dc3545; padding:10px; border-radius:6px; margin-bottom:15px; text-align:center;"></div>
+    <% if (cart?.length) { %>
+
+      <% if (settings.enableCodPayment) { %>
+      <div id="cod-button-container">
+        <button class="cod-confirm-btn" onclick="submitCodOrder()">Place COD Order</button>
+      </div>
+      <% } %>
+
+      <div id="paypal-button-container">
+        <p id="paypal-loading-message">Loading PayPal...</p>
+      </div>
+
+    <% } else { %>
+      <p>No items available for checkout.</p>
+    <% } %>
+
+  </div>
+
 </div>
-
-<!-- Include PayPal SDK with dynamic Client ID -->
-<!-- Using 'defer' to ensure DOM is ready and client-side JS is parsed before SDK tries to render -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://www.paypal.com/sdk/js?client-id=<%= settings.paypalClientId %>&currency=USD"></script>
+
 <script>
-    document.addEventListener('DOMContentLoaded', () => {
-        const cartHasItems = <%= cart && cart.length > 0 %>;
-        const paypalContainer = document.getElementById('paypal-button-container');
-        const loadingMessage = document.getElementById('paypal-loading-message');
-        const paypalClientId = '<%= settings.paypalClientId %>'; // Get client ID from EJS context
-    const codContainer = document.getElementById('cod-button-container');
-    const paymentOptions = document.querySelectorAll('.payment-option');
-    const customerForm = document.getElementById('customer-details-form');
+document.addEventListener("DOMContentLoaded", () => {
+  const countrySelect = document.getElementById("country");
+  const stateSelect = document.getElementById("state");
+  const citySelect = document.getElementById("city");
+  const errorBox = document.getElementById("form-error-msg");
+  const form = document.getElementById("customer-details-form");
 
-    // --- Payment Method Selector Logic ---
-    paymentOptions.forEach(option => {
-        option.addEventListener('click', (e) => {
-            const radio = option.querySelector('input[type="radio"]');
-            if (radio) radio.checked = true;
+  // ---------------------------
+  // 1. Load country list
+  // ---------------------------
+  fetch('/location/countries')
+    .then(r => r.json())
+    .then(list => {
+      if (!Array.isArray(list)) throw new Error("Country list invalid");
 
-            // Update visual selection
-            paymentOptions.forEach(opt => opt.classList.remove('selected'));
-            option.classList.add('selected');
-
-            selectedPaymentMethod = radio.value;
-            
-            // Toggle buttons based on selection
-            if (selectedPaymentMethod === 'COD') {
-                if (codContainer) codContainer.style.display = 'block';
-                if (paypalContainer) paypalContainer.style.display = 'none';
-            } else if (selectedPaymentMethod === 'PAYPAL') {
-                if (codContainer) codContainer.style.display = 'none';
-                if (paypalContainer) paypalContainer.style.display = 'block';
-            }
-        });
+      countrySelect.innerHTML = `<option value="">-- Select Country --</option>` +
+        list.map(c => `<option value="${c}">${c}</option>`).join('');
+    })
+    .catch(err => {
+      console.error(err);
+      errorBox.textContent = "Failed to load countries";
     });
 
-    // Initial state setup (default to PayPal visually and functionally)
-    const initialPaymentOption = document.getElementById('radio-paypal');
-    if (initialPaymentOption) {
-        document.getElementById('option-paypal').classList.add('selected');
-        paypalContainer.style.display = 'block';
-    }
+  // ---------------------------
+  // 2. On Country Change → Load States
+  // ---------------------------
+  countrySelect.addEventListener('change', () => {
+    const countryVal = countrySelect.value;
+    stateSelect.innerHTML = `<option>Loading...</option>`;
+    citySelect.innerHTML = '';
 
+    fetch(`/location/states?country=${countryVal}`)
+      .then(r => r.json())
+      .then(list => {
+        if (!Array.isArray(list)) throw new Error("State list invalid");
+        stateSelect.innerHTML = `<option value="">-- Select State --</option>` +
+          list.map(s => `<option value="${s}">${s}</option>`).join('');
+        citySelect.innerHTML = `<option value="">-- Select City --</option>`;
+      })
+      .catch(err => {
+        console.error(err);
+        errorBox.textContent = "Failed to load states";
+      });
+  });
 
-    // --- COD Order Submission Handler ---
-    window.submitCodOrder = async function() {
-        if (!customerForm.checkValidity()) {
-            customerForm.reportValidity();
-            return;
-        }
+  // ---------------------------
+  // 3. On State Change → Load Cities
+  // ---------------------------
+  // stateSelect.addEventListener('change', () => {
+  //   const countryVal = countrySelect.value;
+  //   const stateVal = stateSelect.value;
+  //   citySelect.innerHTML = `<option>Loading...</option>`;
 
-        const customerDetails = {
-            fullName: customerForm.fullName.value, email: customerForm.email.value, phone: customerForm.phone.value,
-            address: customerForm.address.value, city: customerForm.city.value, zipCode: customerForm.zipCode.value, country: customerForm.country.value,
-            paymentMethod: 'COD'
-        };
+  //   fetch(`/location/cities?country=${countryVal}&state=${stateVal}`)
+  //     .then(r => r.json())
+  //     .then(list => {
+  //       if (!Array.isArray(list)) throw new Error("City list invalid");
+  //       citySelect.innerHTML = `<option value="">-- Select City --</option>` +
+  //         list.map(ct => `<option value="${ct}">${ct}</option>`).join('');
+  //     })
+  //     .catch(err => {
+  //       console.error(err);
+  //       errorBox.textContent = "Failed to load cities";
+  //     });
+  // });
 
-        const codConfirmBtn = document.querySelector('.cod-confirm-btn');
-        codConfirmBtn.disabled = true;
-        codConfirmBtn.textContent = 'Placing Order...';
-
-        try {
-            const response = await fetch('/checkout/cod-order', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(customerDetails)
-            });
-
-            if (response.ok) {
-                alert('Order placed successfully! Please check your email for confirmation and manual verification steps.');
-                window.location.href = '/checkout/cod-success';
-            } else {
-                const errorData = await response.json();
-                alert(errorData.error || 'Failed to place COD order.');
-            }
-        } catch (error) {
-            console.error('COD order error:', error);
-            alert('A network error occurred while placing the order.');
-        } finally {
-            codConfirmBtn.disabled = false;
-            codConfirmBtn.textContent = 'Place COD Order';
-        }
-    }
-
-        if (!cartHasItems) {
-            console.log('Cart is empty, PayPal buttons not rendered.');
-            if (paypalContainer) {
-                paypalContainer.innerHTML = '<p>No items in cart to checkout.</p>';
-            }
-            return; // Exit if no items in cart
-        }
-
-        // Check if PayPal SDK is loaded and client ID is valid
-        if (!paypalClientId || paypalClientId.includes('YOUR_PAYPAL_CLIENT_ID')) {
-             console.error('PayPal Client ID is not configured. Please set it in admin settings.');
-             if (paypalContainer) {
-                paypalContainer.innerHTML = '<p style="color: red; text-align: center;">PayPal is not configured. Please contact support.</p>';
-                loadingMessage.style.display = 'none';
-            }
-            return;
-        }
-
-
-        // Function to render PayPal buttons, now called after a short delay to ensure SDK is ready
-        // Or, more robustly, listen for paypal object to be available
-        const renderPayPalButtons = () => {
-            if (typeof paypal === 'undefined' || !paypal.Buttons) {
-                console.warn('PayPal SDK not yet available, retrying...');
-                setTimeout(renderPayPalButtons, 200); // Retry after 200ms
-                return;
-            }
-            
-            console.log('PayPal SDK is available. Attempting to render buttons...');
-            if (loadingMessage) loadingMessage.style.display = 'none'; // Hide loading message
-
-            try {
-                paypal.Buttons({
-                    // Optional: Customize button style if needed
-                    // style: {
-                    //     layout: 'vertical',
-                    //     color: 'gold',
-                    //     shape: 'rect',
-                    //     label: 'paypal'
-                    // },
-                    createOrder: async function(data, actions) {
-                        const form = document.getElementById('customer-details-form');
-                        if (!form.checkValidity()) {
-                            form.reportValidity();
-                            console.error('Customer details form not valid.');
-                            alert('Please fill in all required customer details before proceeding.');
-                            return actions.reject(new Error('Customer details form not valid.'));
-                        }
-                        
-                        try {
-                            const customerDetails = {
-                                fullName: form.fullName.value, email: form.email.value, phone: form.phone.value,
-                                address: form.address.value, city: form.city.value, zipCode: form.zipCode.value, country: form.country.value
-                            };
-                            const saveDetailsResponse = await fetch('/checkout/save-details', {
-                                method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(customerDetails)
-                            });
-                            if (!saveDetailsResponse.ok) { throw new Error('Failed to save customer details on server.'); }
-
-                            const response = await fetch('/api/orders', {
-                                method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ /* Cart data is in session */ }),
-                            });
-                            if (!response.ok) { const errorData = await response.json(); throw new Error(errorData.error || 'Failed to create PayPal order on server.'); }
-                            const order = await response.json();
-                            console.log('PayPal Order ID created:', order.orderID);
-                            return order.orderID;
-                        } catch (error) {
-                            console.error('Error in PayPal createOrder:', error);
-                            alert('Could not set up PayPal transaction. Please check your details and try again.');
-                            return actions.reject(error);
-                        }
-                    },
-                    onApprove: async function(data, actions) {
-                        console.log('PayPal payment approved, attempting to capture...', data);
-                        try {
-                            const response = await fetch(`/api/orders/${data.orderID}/capture`, {
-                                method: 'POST', headers: { 'Content-Type': 'application/json' },
-                            });
-                            if (!response.ok) { const errorData = await response.json(); throw new Error(errorData.error || 'Failed to capture PayPal order on server.'); }
-                            const orderData = await response.json();
-                            console.log('PayPal Capture result:', orderData);
-                            alert('Payment successful!');
-                            window.location.href = '/checkout/success';
-                        } catch (error) {
-                            console.error('Error capturing PayPal order:', error);
-                            alert('Payment could not be completed. Please try again.');
-                        }
-                    },
-                    onCancel: function (data) {
-                        console.log('Payment cancelled by user:', data);
-                        alert('Payment cancelled.');
-                        window.location.href = '/checkout/cancel';
-                    },
-                    onError: function (err) {
-                        console.error('An error occurred during the PayPal transaction:', err);
-                        alert('An error occurred with PayPal. Please try again or contact support.');
-                    }
-                }).render(paypalContainer);
-            } catch (renderError) {
-                console.error('Error during PayPal button rendering:', renderError);
-                if (paypalContainer) {
-                    paypalContainer.innerHTML = '<p style="color: red; text-align: center;">Failed to load payment buttons. Please try refreshing.</p>';
-                }
-            }
-        };
-
-        // Start checking for PayPal SDK readiness
-        // if (initialPaymentOption && initialPaymentOption.checked) {
-        renderPayPalButtons();
-    // }
+  cityInput.addEventListener("input", () => {
+      errorBox.textContent = "";
     });
+
+  // ---------------------------
+  // 4. Save selected details to DB after form submit
+  // ---------------------------
+  window.submitCustomerDetails = async () => {
+    if (!form.checkValidity()) return form.reportValidity();
+
+    const formData = Object.fromEntries(new FormData(form).entries());
+
+    try {
+      const resp = await fetch('/checkout/save-details', {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData)
+      });
+
+      const result = await resp.json();
+      if (resp.ok) {
+        console.log("Saved to DB ✅", result);
+      } else {
+        errorBox.textContent = result.error || "Failed to save details";
+      }
+    } catch (err) {
+      console.error("Save Error:", err);
+      errorBox.textContent = "Server error while saving details";
+    }
+  };
+});
+
+
+
+</script>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    // --------------- PAYPAL INTEGRATION ---------------
+
+
+
+    const paypalContainer = document.getElementById('paypal-button-container');
+    const loadingMessage = document.getElementById('paypal-loading-message');
+    const form = document.getElementById('customer-details-form');
+
+    // ---------------- COD ORDER ----------------
+    window.submitCodOrder = async () => {
+      if (!form.checkValidity()) return form.reportValidity();
+
+      const details = Object.fromEntries(new FormData(form).entries());
+
+      const btn = document.querySelector('.cod-confirm-btn');
+      btn.disabled = true; btn.innerText = 'Placing Order...';
+
+      const response = await fetch('/checkout/cod-order', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(details)
+      });
+
+      const result = await response.json();
+      alert(result.message || result.error);
+
+      if (response.ok) window.location.href = '/checkout/cod-success';
+      btn.disabled = false; btn.innerText = 'Place COD Order';
+    };
+
+    // --------------- PAYPAL BUTTONS ---------------
+    const renderPayPal = () => {
+      if (!paypal?.Buttons) return setTimeout(renderPayPal, 300);
+
+      loadingMessage?.remove();
+
+      paypal.Buttons({
+        createOrder: async () => {
+          if (!form.checkValidity()) {
+            form.reportValidity();
+            throw new Error('Invalid customer details');
+          }
+
+          await fetch('/checkout/save-details', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(Object.fromEntries(new FormData(form).entries()))
+          });
+
+          const res = await fetch('/api/orders', { method: 'POST' });
+          const data = await res.json();
+          return data.orderID;
+        },
+
+        onApprove: async (data) => {
+          const res = await fetch(`/api/orders/${data.orderID}/capture`, { method: 'POST' });
+          const result = await res.json();
+          if (result.status === 'COMPLETED') window.location.href = '/checkout/success';
+        },
+
+        onError: (err) => alert('PayPal Error: ' + err.message)
+
+      }).render('#paypal-button-container');
+    };
+
+    renderPayPal();
+  });
 </script>
 
 <%- include('_footer') %>

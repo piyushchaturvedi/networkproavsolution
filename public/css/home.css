@@ -1138,7 +1138,7 @@ img {
 .fixed-chat-banner {
     width: 100%;
     margin-top: 30px; /* Space below the main hero/banner section */
-    margin-bottom: 30px; /* Space above content */
+    /* margin-bottom: 30px;  */
     padding: 0;
     text-align: center;
 }
@@ -1146,14 +1146,14 @@ img {
 .fixed-chat-banner a {
     display: block; /* Ensure it's a block element to respect max-width */
     width: 100%;
-    max-width: 450px; /* Adjusted max-width to look like a clean banner button */
+    max-width: 483px; /* Adjusted max-width to look like a clean banner button */
     margin: 0 auto; /* CRITICAL FIX: Centers the block element horizontally */
     cursor: pointer;
     text-decoration: none;
 }
 
 .fixed-chat-banner img {
-    width: 100%;
+    width: 90%;
     height: auto;
     display: block;
     transition: transform 0.2s;
@@ -1170,5 +1170,44 @@ img {
     .fixed-chat-banner {
         margin-top: 20px;
         margin-bottom: 20px;
+    }
+}
+
+
+.chat-btn-wrapper {
+    display: flex;
+    justify-content: center;
+    /* margin: 25px 0 40px; */
+}
+
+.chat-btn {
+    display: inline-block;
+    background: #ffffff;
+    border: 3px solid #0a3d62;
+    padding: 18px 40px;
+    border-radius: 50px;
+    font-size: 22px;
+    font-weight: 700;
+    color: #0a3d62;
+    text-decoration: none;
+    letter-spacing: 1px;
+    transition: all 0.3s ease;
+    box-shadow: 0 0 12px rgba(10, 61, 98, 0.25);
+}
+
+/* Hover effect */
+.chat-btn:hover {
+    background: #0a3d62;
+    color: #ffffff;
+    box-shadow: 0 0 20px rgba(10, 61, 98, 0.6);
+}
+
+/* Fully mobile responsive */
+@media (max-width: 600px) {
+    .chat-btn {
+        width: 90%;
+        text-align: center;
+        font-size: 13px;
+        padding: 15px 20px;
     }
 }

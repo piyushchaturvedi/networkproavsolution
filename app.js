@@ -24,6 +24,8 @@ import Product from './models/product.js';
 // Import Route Modules
 import shopRoutes from './routes/shop.js';
 import adminRoutes from './routes/admin.js';
+import cors from 'cors';
+
 
 
 // Derive __dirname equivalent for ES Modules
@@ -33,7 +35,7 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 const port = process.env.PORT || 3000;
-
+app.use(cors());
 // Connect to MongoDB
 connectDB(); // Ensure this establishes connection to the MONGODB_URI
 
@@ -99,33 +101,44 @@ app.locals.uploadCampaignBannerImage = multer({
 
 // Pass common services/configs to routes via app.locals
 
-app.locals.generateAccessToken = async (appLocals) => { /* ... */ };
+app.locals.generateAccessToken = async function (locals) {
+    try {
+        const clientId = locals.settings.paypalClientId || process.env.PAYPAL_CLIENT_ID;
+        const secret = locals.settings.paypalSecret || process.env.PAYPAL_CLIENT_SECRET;
 
-app.locals.getTransporter = (appLocals) => { // <-- ADD/UPDATE THIS FUNCTION
-    // Prioritize credentials from .env, fall back to admin settings
-    const user = process.env.EMAIL_USER || appLocals.settings.emailUser;
-    const pass = process.env.EMAIL_PASS || appLocals.settings.emailPass;
-
-    if (!user || !pass) {
-        console.error("Nodemailer: Email credentials missing.");
-        return null;
-    }
-    
-    // Auto-detect service (like Gmail) for simplified configuration
-    const service = user.toLowerCase().includes('gmail') ? 'gmail' : null;
-    
-    return nodemailer.createTransport({
-        service: service,
-        // If not using a known service, configure host/port (using Gmail convention as an example)
-        host: service ? undefined : 'smtp.yourhost.com', 
-        port: service ? 465 : 587,
-        secure: service ? true : false,
-        auth: {
-            user: user,
-            pass: pass
+        if (!clientId || !secret) {
+            throw new Error("PayPal Client ID or Secret is missing.");
         }
-    });
-}; // <-- END ADDED FUNCTION
+
+        // Encode to Base64
+        const auth = Buffer.from(`${clientId}:${secret}`).toString("base64");
+
+        // Request PayPal OAuth Token
+        const response = await fetch("https://api-m.sandbox.paypal.com/v1/oauth2/token", {
+            method: "POST",
+            headers: {
+                "Authorization": `Basic ${auth}`,
+                "Content-Type": "application/x-www-form-urlencoded"
+            },
+            body: "grant_type=client_credentials"
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            console.error("PayPal Access Token Error:", data);
+            throw new Error("Failed to generate PayPal Access Token");
+        }
+
+        return data.access_token;
+
+    } catch (error) {
+        console.error("generateAccessToken Error:", error);
+        throw error;
+    }
+};
+
+
 
 // Middleware setup
 app.use(express.static(path.join(__dirname, 'public')));
@@ -276,9 +289,9 @@ app.use(async (req, res, next) => {
         res.locals.settings.campaignBannerBackgroundColor = req.app.locals.settings.campaignBannerBackgroundColor || '#f0f8ff';
         res.locals.settings.campaignBannerTextColor = req.app.locals.settings.campaignBannerTextColor || '#333333';
 
-        res.locals.settings.contactAddress = req.app.locals.settings.contactAddress || '511, Cyberhub, Sector 19, Gurugram, HR12200';
-        res.locals.settings.contactEmail = req.app.locals.settings.contactEmail || 'support@cybersafetrust.com';
-        res.locals.settings.contactPhone = req.app.locals.settings.contactPhone || '+91 98765 43210';
+        res.locals.settings.contactAddress = req.app.locals.settings.contactAddress || '24H,Darbar Colony,Ganesh Vihar, Jaipur,India';
+        res.locals.settings.contactEmail = req.app.locals.settings.contactEmail || 'suport@networkproavsolution.com';
+        res.locals.settings.contactPhone = req.app.locals.settings.contactPhone || '1 (888) 656-8534';
 
 
         res.locals.headerPages = await Page.find({ $or: [{ menuLocation: 'header' }, { menuLocation: 'both' }] }).sort({ order: 1, title: 1 });
@@ -297,8 +310,6 @@ app.use(async (req, res, next) => {
     next();
 });
 
-// Pass common services/configs to routes via app.locals
-app.locals.generateAccessToken = async (appLocals) => { /* ... */ };
 // --- NODEMAILER TRANSPORTER DEFINITION (CRITICAL) ---
     app.locals.getTransporter = (appLocals) => { 
         // Prioritize credentials from .env, fall back to admin settings

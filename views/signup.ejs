@@ -16,7 +16,7 @@
     padding: 30px;
     max-width: 450px;
     width: 100%;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
     border-radius: 8px;
     text-align: center;
   }
@@ -41,7 +41,8 @@
     padding: 12px;
     border: 1px solid #ccc;
     border-radius: 5px;
-    margin-bottom: 5px; /* Reduced margin for messages */
+    margin-bottom: 5px;
+    /* Reduced margin for messages */
     font-size: 1rem;
   }
 
@@ -67,6 +68,7 @@
     color: #28a745;
     margin-bottom: 10px;
   }
+
   .error-message {
     color: #dc3545;
     background-color: #f8d7da;
@@ -82,30 +84,41 @@
   <div class="auth-box">
     <h2>Create Account</h2>
     <% if (message) { %>
-      <p class="message"><%= message %></p>
+    <p class="message"><%= message %></p>
     <% } %>
     <% if (error) { %>
-      <p class="error-message"><%= error %></p>
+    <p class="error-message"><%= error %></p>
     <% } %>
-    
+
     <form action="/signup" method="POST">
-      <label for="fullName">Full Name:</label>
-      <input type="text" id="fullName" name="fullName" required value="<%= typeof formData !== 'undefined' ? formData.fullName : '' %>">
+
+      <label for="firstName">First Name:</label>
+      <input type="text" id="firstName" name="firstName" required value="<%= formData?.firstName || '' %>">
+
+      <label for="lastName">Last Name:</label>
+      <input type="text" id="lastName" name="lastName" required value="<%= formData?.lastName || '' %>">
 
       <label for="email">Email:</label>
-      <input type="email" id="email" name="email" required value="<%= typeof formData !== 'undefined' ? formData.email : '' %>">
+      <input type="email" id="email" name="email" required value="<%= formData?.email || '' %>">
 
-      <label for="username">Username:</label>
-      <input type="text" id="username" name="username" required value="<%= typeof formData !== 'undefined' ? formData.username : '' %>">
+      <label for="phone">Phone Number:</label>
+      <input type="tel" id="phone" name="phone" required value="<%= formData?.phone || '' %>">
+
+      <label for="address">Address (optional):</label>
+      <input type="text" id="address" name="address" value="<%= formData?.address || '' %>">
+
+      <!-- <label for="username">Username:</label>
+      <input type="text" id="username" name="username" required value="<%= formData?.username || '' %>"> -->
 
       <label for="password">Password:</label>
       <input type="password" id="password" name="password" required>
 
       <button type="submit">Sign Up</button>
     </form>
-    
+
+
     <p style="margin-top: 20px; font-size: 0.9em;">
-        Already have an account? <a href="/login">Login here</a>
+      Already have an account? <a href="/login">Login here</a>
     </p>
   </div>
 </div>

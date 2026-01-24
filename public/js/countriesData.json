@@ -1,0 +1,90 @@
+{
+  "UNITED STATES OF AMERICA": {
+    "states": {
+      "California": ["Los Angeles", "San Francisco", "San Diego", "Sacramento", "Fresno", "Oakland", "San Jose", "Bakersfield"],
+      "Texas": ["Houston", "Dallas", "Austin", "San Antonio", "Fort Worth", "El Paso", "Corpus Christi", "Lubbock"],
+      "New York": ["New York City", "Buffalo", "Albany", "Rochester", "Syracuse", "Yonkers", "Utica"],
+      "Florida": ["Miami", "Orlando", "Tampa", "Jacksonville", "Tallahassee", "Fort Lauderdale", "Cape Coral"],
+      "Illinois": ["Chicago", "Springfield", "Naperville", "Peoria", "Rockford", "Joliet"],
+      "Washington": ["Seattle", "Olympia", "Spokane", "Tacoma", "Vancouver"],
+      "Nevada": ["Las Vegas", "Reno", "Carson City", "Henderson"],
+      "Arizona": ["Phoenix", "Tucson", "Mesa", "Scottsdale", "Tempe"],
+      "Colorado": ["Denver", "Colorado Springs", "Boulder", "Aurora"],
+      "Georgia": ["Atlanta", "Augusta", "Columbus", "Savannah"],
+      "Massachusetts": ["Boston", "Cambridge", "Springfield", "Worcester"],
+      "New Jersey": ["Newark", "Jersey City", "Trenton", "Hoboken"],
+      "Pennsylvania": ["Philadelphia", "Pittsburgh, Harrisburg, Allentown"],
+      "Ohio": ["Columbus", "Cleveland", "Cincinnati", "Toledo"],
+      "Michigan": ["Detroit", "Lansing", "Grand Rapids", "Ann Arbor"],
+      "North Carolina": ["Charlotte", "Raleigh", "Greensboro", "Durham"],
+      "Virginia": ["Richmond", "Virginia Beach", "Norfolk", "Chesapeake"],
+      "Missouri": ["Kansas City", "St. Louis", "Jefferson City"],
+      "Oregon": ["Portland", "Salem", "Eugene"],
+      "Indiana": ["Indianapolis", "Fort Wayne", "Bloomington"]
+    }
+  },
+
+  "UNITED KINGDOM": {
+    "states": {
+      "England": ["London", "Birmingham", "Manchester", "Liverpool", "Leeds", "Sheffield", "Oxford", "Cambridge", "Newcastle", "Bradford"],
+      "Scotland": ["Edinburgh", "Glasgow", "Aberdeen", "Dundee"],
+      "Wales": ["Cardiff", "Swansea", "Newport"],
+      "Northern Ireland": ["Belfast", "Derry", "Lisburn"]
+    }
+  },
+
+  "CANADA": {
+    "states": {
+      "Ontario": ["Toronto", "Ottawa", "Mississauga", "Brampton", "Hamilton"],
+      "British Columbia": ["Vancouver", "Victoria", "Kelowna", "Surrey"],
+      "Alberta": ["Calgary", "Edmonton", "Red Deer"],
+      "Quebec": ["Montreal", "Quebec City", "Laval", "Gatineau"],
+      "Manitoba": ["Winnipeg", "Brandon"],
+      "Nova Scotia": ["Halifax", "Sydney"],
+      "Saskatchewan": ["Saskatoon", "Regina"],
+      "Newfoundland and Labrador": ["St. John's", "Mount Pearl"],
+      "New Brunswick": ["Fredericton", "Moncton"],
+      "Prince Edward Island": ["Charlottetown"],
+      "Northwest Territories": ["Yellowknife"],
+      "Nunavut": ["Iqaluit"],
+      "Yukon": ["Whitehorse"]
+    }
+  },
+
+  "INDIA": {
+    "states": {
+      "Madhya Pradesh": ["Indore", "Bhopal", "Gwalior", "Jabalpur, Ujjain, Sagar, Rewa"],
+      "Rajasthan": ["Jaipur", "Udaipur, Jodhpur, Kota, Ajmer, Alwar, Bharatpur"],
+      "Uttar Pradesh": ["Lucknow", "Kanpur", "Agra", "Noida", "Ghaziabad, Meerut, Varanasi"],
+      "Delhi": ["New Delhi"],
+      "Maharashtra": ["Mumbai", "Pune, Nagpur, Nashik, Aurangabad"],
+      "Gujarat": ["Ahmedabad", "Surat, Vadodara, Rajkot"],
+      "Punjab": ["Chandigarh", "Ludhiana, Amritsar, Jalandhar"],
+      "Haryana": ["Gurugram", "Faridabad, Panipat"],
+      "Bihar": ["Patna", "Gaya, Bhagalpur"],
+      "West Bengal": ["Kolkata", "Siliguri, Asansol"],
+      "Tamil Nadu": ["Chennai, Coimbatore, Madurai"],
+      "Karnataka": ["Bengaluru, Mysuru, Mangalore"],
+      "Kerala": ["Thiruvananthapuram", "Kochi, Kozhikode"],
+      "Andhra Pradesh": ["Visakhapatnam", "Vijayawada"],
+      "Telangana": ["Hyderabad, Warangal"],
+      "Jharkhand": ["Ranchi", "Jamshedpur"],
+      "Chhattisgarh": ["Raipur", "Bhilai"],
+      "Odisha": ["Bhubaneswar, Cuttack"],
+      "Assam": ["Guwahati, Dibrugarh"],
+      "Jammu & Kashmir": ["Srinagar", "Jammu"],
+      "Uttarakhand": ["Dehradun", "Haridwar"],
+      "Himachal Pradesh": ["Shimla, Manali"],
+      "Goa": ["Panaji"],
+      "Tripura": ["Agartala"],
+      "Meghalaya": ["Shillong"],
+      "Mizoram": ["Aizawl"],
+      "Nagaland": ["Kohima"],
+      "Sikkim": ["Gangtok"],
+      "Arunachal Pradesh": ["Itanagar"],
+      "Andaman & Nicobar": ["Port Blair"],
+      "Chandigarh": ["Chandigarh"],
+      "Ladakh": ["Leh"]
+    }
+  }
+}

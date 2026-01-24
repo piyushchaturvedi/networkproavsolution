@@ -1,54 +1,92 @@
 // models/user.js
-import mongoose from 'mongoose'; // ES6 import
+import mongoose from 'mongoose';
 
 const UserSchema = new mongoose.Schema({
-    username: {
+
+    firstName: {
         type: String,
         required: true,
-        unique: true,
         trim: true
     },
-    password: { // In a real app, this would be hashed (e.g., with bcrypt)
+
+    lastName: {
         type: String,
-        required: true
+        required: true,
+        trim: true
     },
-    role: { // e.g., 'admin', 'customer'
+
+    fullName: {
         type: String,
-        default: 'customer',
-        enum: ['admin', 'customer']
+        trim: true
     },
+
     email: {
         type: String,
         required: true,
         unique: true,
-        trim: true,
-        lowercase: true
+        lowercase: true,
+        trim: true
     },
-    // --- NEW FIELDS FOR MANAGEMENT ---
-    isBlocked: { // For admin to disable user access
+
+    // username: {
+    //     type: String,
+    //     required: true,
+    //     unique: true,
+    //     trim: true
+    // },
+
+    password: {
+        type: String,
+        required: true    // (Hash before save)
+    },
+
+    phone: {
+        type: String,
+        required: true,
+        trim: true
+    },
+
+    address: {
+        type: String,
+        default: '',
+        trim: true
+    },
+
+    role: {
+        type: String,
+        enum: ['admin', 'customer'],
+        default: 'customer'
+    },
+
+    isBlocked: {
         type: Boolean,
         default: false
     },
-    fullName: {
-        type: String,
-        trim: true,
-        default: ''
-    },
-    // --- END NEW FIELDS ---
-    // --- NEW FIELDS FOR PASSWORD RESET ---
+
+    // Password Reset Fields
     resetToken: {
         type: String,
         default: null
     },
+
     resetTokenExpiry: {
         type: Date,
         default: null
     },
-    // --- END NEW FIELDS ---
+
     createdAt: {
         type: Date,
         default: Date.now
     }
 });
 
-export default mongoose.model('User', UserSchema); // ES6 export
+
+// Auto-generate fullName if first + last exists
+UserSchema.pre('save', function (next) {
+    if (this.firstName && this.lastName) {
+        this.fullName = `${this.firstName} ${this.lastName}`;
+    }
+    next();
+});
+
+export default mongoose.model('User', UserSchema);

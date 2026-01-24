@@ -45,7 +45,7 @@
   /* 1. Set the container to flexbox for proper alignment */
 .products_search_main {
     width: 100%;
-    margin-left: -35px;
+    margin-left: 0px !important;
     display: flex; /* ADDED/UPDATED */
     align-items: center; /* ADDED/UPDATED: Ensures vertical centering */
 }
@@ -120,7 +120,7 @@
             ">
                 <i class="fa fa-spinner fa-spin"></i>
             </div>
-            <button type="submit" class="products_search_submit_btn" style="background-color: #ef4444; color: white; border: none; height: 38px;">Search</button>
+            <button type="submit" class="products_search_submit_btn" style="background-color: #ef4444; color: white; border: none; height: 42px;">Search</button>
           </form>
           
           <div id="search-suggestions-container" style="
@@ -195,7 +195,7 @@
               <!-- 2. Dynamic Page: About Us -->
               <% if (aboutPage) { %>
               <li class="nav-item">
-                <a href="/page/<%= aboutPage.slug %>"
+                <a href="/<%= aboutPage.slug %>"
                   class="nav-link <%= activePage === aboutPage.slug ? 'active text-success' : '' %>">
                   <%= aboutPage.title.toUpperCase() %>
                 </a>
@@ -228,7 +228,7 @@
               <!-- 5. Dynamic Page: Terms & Conditions -->
               <% if (termsPage) { %>
               <li class="nav-item">
-                <a href="/page/<%= termsPage.slug %>"
+                <a href="/<%= termsPage.slug %>"
                   class="nav-link <%= activePage === termsPage.slug ? 'active text-success' : '' %>">
                   <%= termsPage.title.toUpperCase() %>
                 </a>
@@ -237,7 +237,7 @@
 
               <!-- Admin Links -->
               <% if (user && user.role === 'admin') { %>
-              <li class="nav-item"><a href="/admin"
+              <li class="nav-item"><a href="/admin/product/list"
                   class="nav-link <%= activePage === 'admin' ? 'active text-success' : '' %>">PRODUCT LIST</a></li>
               <li class="nav-item"><a href="/admin/product/add"
                   class="nav-link <%= activePage === 'add-product' ? 'active text-success' : '' %>">ADD PRODUCT</a></li>

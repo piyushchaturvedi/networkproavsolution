@@ -12,7 +12,17 @@ import Page from '../models/page.js';
 import ContactMessage from '../models/contactMessage.js';
 import Coupon from '../models/coupon.js';
 import Subscriber from '../models/subscriber.js';
+import path from "path";
+import fs from 'fs';
 
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const countriesData = JSON.parse(
+  fs.readFileSync(path.join(__dirname, "..", "public", "js", "countriesData.json"))
+);
 // Home Page
 router.get('/', async (req, res) => {
   try {
@@ -58,46 +68,95 @@ router.get('/signup', (req, res) => {
 
 // Signup Submission (POST)
 router.post('/signup', async (req, res) => {
-    const { fullName, email, username, password } = req.body;
-    
-    // Simple Server-Side Validation
-    if (!email || !username || !password || !fullName) {
-        return res.render('signup', { pageTitle: "Sign Up", error: 'All fields are required.', message: null, formData: req.body });
+    const {
+        firstName,
+        lastName,
+        email,
+        // username,
+        password,
+        phone,
+        address
+    } = req.body;
+
+    let formData = req.body;
+
+    // ---------------------------
+    // 1. Server-Side Validation
+    // ---------------------------
+    if (!firstName || !lastName || !email || !password || !phone) {
+        return res.render('signup', {
+            pageTitle: "Sign Up",
+            error: 'Please fill all required fields.',
+            message: null,
+            formData
+        });
     }
-    
+
+    const fullName = `${firstName.trim()} ${lastName.trim()}`;
+
     try {
+        // ---------------------------
+        // 2. Check Duplicate User
+        // ---------------------------
+        const existingUser = await User.findOne({
+            $or: [{ email }, { username }]
+        });
+
+        if (existingUser) {
+            return res.render('signup', {
+                pageTitle: "Sign Up",
+                error: 'Email or Username already exists.',
+                message: null,
+                formData
+            });
+        }
+
+        // ---------------------------
+        // 3. Create New User
+        // ---------------------------
         const newUser = new User({
             fullName,
+            firstName,
+            lastName,
             email,
-            username,
-            password, // NOTE: In a production app, HASH this password!
+            // username,
+            password,   // IMPORTANT: Add hashing later
+            phone,
+            address: address || '',
             role: 'customer',
-            isBlocked: false 
+            isBlocked: false
         });
 
         await newUser.save();
 
-        // Automatically log the user in after successful signup
-        req.session.user = { 
-            id: newUser._id, 
-            username: newUser.username, 
-            role: newUser.role, 
+        // ---------------------------
+        // 4. Automatically login user
+        // ---------------------------
+        req.session.user = {
+            id: newUser._id,
+            // username: newUser.username,
             email: newUser.email,
-            isBlocked: newUser.isBlocked,
-            fullName: newUser.fullName
+            role: newUser.role,
+            fullName: newUser.fullName,
+            phone: newUser.phone,
+            address: newUser.address,
+            isBlocked: newUser.isBlocked
         };
 
-        res.redirect('/profile'); 
+        return res.redirect('/profile');
 
     } catch (error) {
-        console.error('Signup error:', error);
-        let errorMessage = 'Registration failed.';
-        if (error.code === 11000) {
-            errorMessage = 'Username or Email already in use. Please try another.';
-        }
-        res.render('signup', { pageTitle: "Sign Up", error: errorMessage, message: null, formData: req.body });
+        console.error("Signup Error:", error);
+
+        return res.render('signup', {
+            pageTitle: "Sign Up",
+            error: 'Something went wrong. Please try again.',
+            message: null,
+            formData
+        });
     }
 });
+
 
 
 // Login Page (GET)
@@ -127,7 +186,7 @@ router.post('/login', async (req, res) => {
             // Set session data for customer user (or admin)
             req.session.user = { 
                 id: user._id, 
-                username: user.username, 
+                // username: user.username, 
                 role: user.role, 
                 email: user.email,
                 isBlocked: user.isBlocked,
@@ -187,7 +246,11 @@ router.get('/logout', (req, res) => {
 });
 
 
+// ===============================================
 // 5. FORGOT PASSWORD
+// ===============================================
+
+// GET: Forgot Password Page
 router.get('/forgot-password', (req, res) => {
     res.render('forgot_password', { 
         pageTitle: "Forgot Password", 
@@ -196,69 +259,91 @@ router.get('/forgot-password', (req, res) => {
     });
 });
 
+
+// POST: Forgot Password Request
 router.post('/forgot-password', async (req, res) => {
     const { email } = req.body;
 
+    // Basic validation
     if (!email) {
-        return res.render('forgot_password', { pageTitle: "Forgot Password", error: 'Email is required.', message: null });
+        return res.render('forgot_password', { 
+            pageTitle: "Forgot Password", 
+            error: 'Email is required.', 
+            message: null 
+        });
     }
 
     try {
-        // Find user by email (only customers, excluding admins for security)
-        const user = await User.findOne({ email, role: { $ne: 'admin' } }); 
+        // Find user (exclude admin users)
+        const user = await User.findOne({ email, role: { $ne: 'admin' } });
 
+        // ALWAYS show success message (avoid user enumeration attacks)
+        const successMsg = 'If an account exists for that email, a password reset link has been sent.';
+
+        // If no user exists → still return same success message
         if (!user) {
-            // Send success message even if user isn't found to prevent enumeration attacks
             return res.render('forgot_password', { 
                 pageTitle: "Forgot Password", 
-                message: 'If an account exists for that email, a password reset link has been sent.',
+                message: successMsg,
                 error: null
             });
         }
-        
-        // --- SIMULATED TOKEN GENERATION & EMAIL SENDING ---
-        
+
+        // Generate secure random token
         const resetToken = crypto.randomBytes(32).toString('hex');
-        
-        // Initialize Nodemailer Transport
-        const dynamicTransporter = req.app.locals.getTransporter(req.app.locals); 
-        const senderEmail = dynamicTransporter?.options?.auth?.user;
 
-        if (dynamicTransporter && senderEmail) {
-            // NOTE: In a real app, you MUST implement a secure mechanism 
-            // to save this token/expiry hash to the User model.
-            
-            const resetUrl = `http://localhost:3000/reset-password?token=${resetToken}`; // Placeholder URL
-            
-            const mailOptions = {
-                from: senderEmail,
-                to: user.email,
-                subject: 'Password Reset Request',
-                html: `
-                    <p>You requested a password reset for your account on NetworkproAV Solution.</p>
-                    <p>Click the link below to proceed with the reset. This link will expire shortly:</p>
-                    <a href="${resetUrl}" style="background-color: #ef4444; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">
-                        Reset My Password
-                    </a>
-                    <p>If you did not request this, please ignore this email.</p>
-                `,
-            };
-            await dynamicTransporter.sendMail(mailOptions);
-            console.log(`Password reset email sent to ${user.email}. Token: ${resetToken} Link : ${resetUrl}`);
+        // Setup transporter (from stored admin SMTP settings)
+        const transporter = req.app.locals.getTransporter(req.app.locals);
+        const senderEmail = transporter?.options?.auth?.user;
 
-            return res.render('forgot_password', { 
-                pageTitle: "Forgot Password", 
-                message: 'A password reset link has been sent to your email address.',
-                error: null
-            });
-        } else {
-            console.error('Nodemailer configuration missing or failed. Check Admin Settings.');
+        if (!transporter || !senderEmail) {
+            console.error("Email transporter not configured correctly.");
             return res.render('forgot_password', { 
                 pageTitle: "Forgot Password", 
                 error: 'Email service error. Please contact support.',
                 message: null
             });
         }
+
+        // Store token temporarily (Recommended: save hashed token + expiry in DB)
+        user.resetToken = resetToken;
+        user.resetTokenExpiry = Date.now() + 1000 * 60 * 15; // 15 minutes expiry
+        await user.save();
+
+        // Reset Password URL
+        const protocol = req.headers["x-forwarded-proto"] || req.protocol;
+        const host = req.headers.host;
+        const resetUrl = `${protocol}://${host}/reset-password?token=${resetToken}`;
+
+        // Email Body
+        const mailOptions = {
+            from: false? senderEmail: "support@networkproavsolution.com", // Use support email if configured
+            to: user.email,
+            subject: 'Password Reset Request',
+            html: `
+                <img src="https://networkproavsolution.com/uploads/logos/logo.png" style="max-width: 100%;
+    height: 30px;
+    display: block;"/>
+<p>You requested a password reset for your account on NetworkproAV Solution.</p>
+                <p>Click the button below to reset your password. This link expires in 15 minutes:</p>
+                <a href="${resetUrl}" 
+                    style="background-color:#ef4444;color:white;padding:10px 20px;border-radius:5px;text-decoration:none;">
+                    Reset My Password
+                </a>
+                <p>If you did NOT request this, ignore this email.</p>
+            `,
+        };
+
+        await transporter.sendMail(mailOptions);
+
+        console.log(`Reset email sent to ${user.email}. Token: ${resetToken}`);
+
+        // Return success response
+        return res.render('forgot_password', { 
+            pageTitle: "Forgot Password", 
+            message: successMsg,
+            error: null
+        });
 
     } catch (error) {
         console.error('Forgot password error:', error);
@@ -269,6 +354,142 @@ router.post('/forgot-password', async (req, res) => {
         });
     }
 });
+
+
+// 6. RESET PASSWORD FORM (GET Route)
+router.get('/reset-password', async (req, res) => {
+    const { token } = req.query;
+
+    if (!token) {
+        return res.render('reset_password', { 
+            pageTitle: 'Reset Password', 
+            error: 'Missing password reset token.',
+            message: null,
+            token: null,
+            user: null 
+        });
+    }
+
+    try {
+        const user = await User.findOne({
+            resetToken: token,
+            resetTokenExpiry: { $gt: Date.now() }
+        });
+
+        if (!user) {
+            return res.render('reset_password', { 
+                pageTitle: 'Reset Password',
+                error: 'Invalid or expired password reset link. Please restart the forgot password process.',
+                message: null,
+                token: null,
+                user: null
+            });
+        }
+
+        return res.render('reset_password', { 
+            pageTitle: 'Set New Password',
+            error: null,
+            message: null,
+            token,
+            user: user.toObject()
+        });
+
+    } catch (error) {
+        console.error('Error verifying reset token:', error);
+        return res.render('reset_password', { 
+            pageTitle: 'Reset Password',
+            error: 'Server error while verifying the reset link.',
+            message: null,
+            token: null,
+            user: null
+        });
+    }
+});
+
+
+// 7. RESET PASSWORD SUBMISSION (POST Route)
+router.post('/reset-password', async (req, res) => {
+    const { token, password, confirmPassword } = req.body;
+
+    // 1. Validate password match
+    if (!password || !confirmPassword || password !== confirmPassword) {
+        const userWithToken = await User.findOne({ resetToken: token });
+
+        return res.render('reset_password', { 
+            pageTitle: 'Set New Password', 
+            error: 'Passwords do not match.',
+            message: null,
+            token,
+            user: userWithToken ? userWithToken.toObject() : null
+        });
+    }
+
+    try {
+        // 2. Validate token and its expiry
+        const user = await User.findOne({
+            resetToken: token,
+            resetTokenExpiry: { $gt: Date.now() }
+        });
+
+        if (!user) {
+            return res.render('reset_password', { 
+                pageTitle: 'Reset Password',
+                error: 'Invalid or expired password reset link. Please try again.',
+                message: null,
+                token: null,
+                user: null
+            });
+        }
+
+        // 3. Update password + clear the token
+        user.password = password;  // ⚠ Must hash in production
+        user.resetToken = null;
+        user.resetTokenExpiry = null;
+
+        await user.save();
+
+        // 4. Destroy session to prevent conflicts
+        req.session.destroy(() => {
+            return res.redirect(
+                '/login?errorMessage=' + encodeURIComponent('Password successfully reset. You can now log in.')
+            );
+        });
+
+    } catch (error) {
+        console.error('Password reset error:', error);
+        return res.render('reset_password', { 
+            pageTitle: 'Reset Password',
+            error: 'Server error while updating password.',
+            message: null,
+            token,
+            user: null
+        });
+    }
+});
+
+
+// Countries
+router.get('/location/countries', (req, res) => {
+  res.json(Object.keys(countriesData));
+});
+
+// States
+router.get('/location/states', (req, res) => {
+  res.json(Object.keys(countriesData[req.query.country]?.states || {}));
+});
+
+// Cities
+router.get('/location/cities', (req, res) => {
+  res.json(countriesData[req.query.country]?.states[req.query.state] || []);
+});
+
+// Save checkout details in DB
+router.post('/checkout/save-details', async (req, res) => {
+  await User.updateOne({ email: req.body.email }, { $set: req.body });
+  res.json({ success: true });
+});
+
+
 
 
 // Add this POST route after your /cart/update route (around line 300)
@@ -668,16 +889,16 @@ router.post('/contact', async (req, res) => {
             const customerMailOptions = {
                 from: dynamicTransporter.options.auth.user,
                 to: email,
-                subject: `Confirmation: Your message to CyberSafeTrust - ${subject}`,
+                subject: `Confirmation: Your message to NetworkproAVsolution - ${subject}`,
                 html: `
                     <p>Dear Customer,</p>
-                    <p>Thank you for contacting CyberSafeTrust. We have received your message and will get back to you shortly.</p>
+                    <p>Thank you for contacting NetworkproAVsolution. We have received your message and will get back to you shortly.</p>
                     <h3>Your Message Details:</h3>
                     <ul>
                         <li><strong>Subject:</strong> ${subject}</li>
                         <li><strong>Message:</strong> ${message}</li>
                     </ul>
-                    <p>Sincerely,<br>The CyberSafeTrust Team</p>
+                    <p>Sincerely,<br>The NetworkproAVsolution Team</p>
                 `,
             };
             await dynamicTransporter.sendMail(customerMailOptions);
@@ -736,20 +957,65 @@ router.post('/checkout/save-details', (req, res) => { req.session.customerDetail
 
 // PayPal API Routes
 router.post('/api/orders', async (req, res) => {
-    if (!req.session.cart || req.session.cart.length === 0) { return res.status(400).json({ error: 'Cart is empty. Cannot create order.' }); }
-    const purchase_units = req.session.cart.map(item => ({ amount: { currency_code: 'USD', value: (item.price * item.quantity).toFixed(2) }, description: item.name, }));
+    if (!req.session.cart || req.session.cart.length === 0) {
+        return res.status(400).json({ error: 'Cart is empty. Cannot create order.' });
+    }
+
+    // 1. Calculate total price
+    const total = req.session.cart
+        .reduce((sum, item) => sum + item.price * item.quantity, 0)
+        .toFixed(2);
+
+    // 2. Prepare a readable description
+    const description = req.session.cart
+        .map(item => `${item.name} (x${item.quantity})`)
+        .join(', ');
 
     try {
         const accessToken = await req.app.locals.generateAccessToken(req.app.locals);
-        const response = await fetch(`https://api-m.sandbox.paypal.com/v2/checkout/orders`, { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` }, body: JSON.stringify({ intent: 'CAPTURE', purchase_units: purchase_units, application_context: { return_url: 'http://localhost:3000/checkout/success', cancel_url: 'http://localhost:3000/checkout/cancel' }, }), });
+        console.log('PayPal Access Token:', accessToken);
+        const baseUrl = `${req.protocol}://${req.get('host')}`;
+        const returnUrl = `${baseUrl}/checkout/success`;
+        const cancelUrl = `${baseUrl}/checkout/cancel`;
+        // 3. Create PayPal order with ONLY ONE purchase unit
+        const response = await fetch(`https://api-m.sandbox.paypal.com/v2/checkout/orders`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${accessToken}`
+            },
+            body: JSON.stringify({
+                intent: 'CAPTURE',
+                purchase_units: [{
+                    amount: {
+                        currency_code: 'USD',
+                        value: total
+                    },
+                    description: description
+                }],
+                application_context: {
+                    return_url: returnUrl,
+                    cancel_url: cancelUrl
+                }
+            })
+        });
+
         const order = await response.json();
-        if (response.ok) { res.json({ orderID: order.id }); }
-        else { console.error('PayPal create order error:', order); res.status(response.status).json({ error: order.message || 'Failed to create PayPal order' }); }
+        console.log('PayPal Create Order Response:', order);
+        if (!order.id) {
+            console.error('PayPal Create Error:', order);
+            return res.status(400).json({ error: order.message || 'Failed to create PayPal order' });
+        }
+
+        // 🔥 MUST RETURN orderID
+        return res.json({ orderID: order.id });
+
     } catch (error) {
-        console.error('Error creating PayPal order:', error);
-        res.status(500).json({ error: 'Internal server error' });
+        console.error('PayPal Create Exception:', error);
+        return res.status(500).json({ error: 'Internal server error' });
     }
 });
+
 
 router.post('/api/orders/:orderID/capture', async (req, res) => {
     const { orderID } = req.params;

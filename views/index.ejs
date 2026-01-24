@@ -13,6 +13,10 @@
     transition: transform 0.3s ease !important;
   }
 
+  .add {
+    margin-left: 54% !important;
+  }
+
   /* Hover zoom effect */
   .product-card img:hover {
     transform: scale(1.05) !important;
@@ -20,6 +24,10 @@
 
   /* === MOBILE VIEW === */
   @media (max-width: 576px) {
+    .add {
+      margin-left: 0% !important;
+    }
+
     .product-card img {
       height: 180px !important;
       /* Slightly smaller for phones */
@@ -80,8 +88,8 @@
         <div class="campaign-text">
           <h2><%= settings.campaignBannerHeading %></h2>
           <p><%= settings.campaignBannerText %></p>
-          <a href="<%= settings.campaignBannerButtonLink %>"
-            class="btn campaign-btn"><%= settings.campaignBannerButtonText %> <i class="fa fa-angle-right"></i></a>
+          <a href="<%= settings.campaignBannerButtonLink %>" class="add"><button class="add-to-cart-button"
+              id="addToCartBtn"><%= settings.campaignBannerButtonText %> <i class="fa fa-angle-right"></i></button></a>
         </div>
         <% if (settings.campaignBannerImageUrl) { %>
         <div class="campaign-image">
@@ -165,11 +173,13 @@
         <h3><%= settings.dealSubHeading %></h3>
         <h1><%= settings.dealHeading %></h1>
         <p><%= settings.dealContent %></p>
-        <a href="<%= settings.dealButtonLink %>" class="btn"><%= settings.dealButtonText %></a>
+        <a href="<%= settings.dealButtonLink %>" class="add"><button class="add-to-cart-button"
+            id="addToCartBtn"><%= settings.dealButtonText %></button></a>
       </div>
       <div class="deal-image">
         <a href="<%= settings.dealButtonLink %>" class="btn">
-          <img src="<%= settings.dealImageUrl %>" style="max-width: 50% !important; margin-left: 26%;" alt="Today's Deal Image" />
+          <img src="<%= settings.dealImageUrl %>" style="max-width: 50% !important; margin-left: 26%;"
+            alt="Today's Deal Image" />
         </a>
       </div>
     </div>
@@ -218,9 +228,9 @@
 
 
 <div class="our">
-    <h1> OUR HAPPY CLIENTS </h1>
-    <div class="underline"></div>
-  </div>
+  <h1> OUR HAPPY CUSTOMERS! </h1>
+  <div class="underline"></div>
+</div>
 <section class="testimonials">
   <% if (testimonials && testimonials.length > 0) { %>
   <% testimonials.forEach(testimonial => { %>

@@ -14,16 +14,20 @@
         <p class="price mb-2">
           <span class="text-muted text-decoration-line-through me-2">$<%= product.oldPrice.toFixed(2) %></span>
           <span class="fw-bold text-danger">$<%= product.price.toFixed(2) %></span>
+          <button class="btn btn-success w-100 mt-3" href="javascript:void(0)" onclick="activateTawkChat()">
+          Get Better Deal
+        </button>
         </p>
-
+        <button class="btn btn-success w-100 mt-3" id="addToCartBtn" data-product-id="<%= product.id %>">
+          <i class="bi bi-cart-plus"></i> ADD TO CART
+        </button>
+        
         <p class="short-desc mb-3"><%= product.shortDesc %></p>
         <% product.longDesc.forEach(paragraph => { %>
             <p class="text-secondary"><%= paragraph %></p>
         <% }); %>
 
-        <button class="btn btn-success w-100 mt-3" id="addToCartBtn" data-product-id="<%= product.id %>">
-          <i class="bi bi-cart-plus"></i> ADD TO CART
-        </button>
+        
         <div id="add-to-cart-message" class="mt-2 text-success"></div>
 
         <ul class="list-unstyled mt-4">
