@@ -1,0 +1,298 @@
+<%- include('_header', { pageTitle: pageTitle, activePage: '' }) %>
+
+<style>
+  .success-wrapper {
+    min-height: 70vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #ef4444;
+    padding: 40px 15px;
+    font-family: Poppins, sans-serif;
+  }
+
+  .success-card {
+    background: #fff;
+    border-radius: 14px;
+    padding: 45px 40px;
+    max-width: 520px;
+    width: 100%;
+    text-align: center;
+    box-shadow: 0 10px 35px rgba(0, 0, 0, 0.08);
+    animation: fadeIn .5s ease;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(20px)
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0)
+    }
+  }
+
+  .checkmark {
+    width: 85px;
+    height: 85px;
+    margin: auto;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #2ecc71, #27ae60);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 45px;
+    color: #fff;
+    box-shadow: 0 8px 20px rgba(46, 204, 113, .35);
+  }
+
+  .success-title {
+    font-size: 2rem;
+    font-weight: 600;
+    margin-top: 22px;
+    color: #222;
+  }
+
+  .success-text {
+    color: #666;
+    margin-top: 10px;
+    font-size: 1.05rem;
+    line-height: 1.6;
+  }
+
+  .divider {
+    height: 1px;
+    background: #eee;
+    margin: 25px 0;
+  }
+
+  .order-box {
+    background: #fafafa;
+    border-radius: 10px;
+    padding: 18px;
+    text-align: left;
+    font-size: .98rem;
+  }
+
+  .order-box p {
+    margin: 6px 0;
+  }
+
+  .order-id {
+    font-weight: 600;
+    color: #111;
+    word-break: break-all;
+  }
+
+  .total {
+    font-size: 1.1rem;
+    font-weight: 600;
+  }
+
+  .success-buttons {
+    margin-top: 30px;
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .btn-primary-custom {
+    background: #e63946;
+    color: #fff;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 6px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: .25s;
+    text-decoration: none;
+  }
+
+  .btn-primary-custom:hover {
+    background: #d62839;
+    transform: translateY(-2px);
+  }
+
+  .btn-outline-custom {
+    border: 2px solid #e63946;
+    color: #e63946;
+    padding: 11px 24px;
+    border-radius: 6px;
+    font-weight: 500;
+    text-decoration: none;
+    transition: .25s;
+  }
+
+  .btn-outline-custom:hover {
+    background: #e63946;
+    color: #fff;
+  }
+
+  .info-box {
+    background: #f1f8ff;
+    border-left: 4px solid #3498db;
+    padding: 12px 14px;
+    border-radius: 6px;
+    margin-top: 18px;
+    font-size: .95rem;
+    text-align: left;
+  }
+
+  /* Mobile */
+  @media(max-width:480px) {
+    .success-card {
+      padding: 35px 22px;
+    }
+
+    .success-title {
+      font-size: 1.6rem;
+    }
+  }
+</style>
+
+<div class="success-wrapper">
+
+  <div class="success-card">
+
+    <% if(order){ %>
+
+    <div class="checkmark">✓</div>
+
+    <div class="success-title">Payment Successful</div>
+
+    <div class="success-text">
+      <strong>Welcome to NetworkproAV solution Antivirus Protection</strong><br>
+      Your payment has been processed successfully and your protection is now being activated.
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="order-box">
+
+      <p style="margin-bottom:12px;color:#555;">
+        You purchased <strong><%= order.items.length %></strong> item(s)
+      </p>
+
+      <% order.items.forEach(item => { %>
+
+      <div style="
+display:flex;
+gap:14px;
+margin-bottom:15px;
+padding:14px;
+background:#fff;
+border-radius:10px;
+border:1px solid #eee;
+box-shadow:0 3px 8px rgba(0,0,0,.05);
+">
+
+        <img src="<%= item.image %>" style="
+width:65px;
+height:65px;
+object-fit:contain;
+border-radius:8px;
+background:#fafafa;
+padding:6px;
+">
+
+        <div style="flex:1">
+
+          <div style="font-weight:600;font-size:1.05rem;">
+            <%= item.name %>
+          </div>
+
+          <div style="font-size:.9rem;color:#666;margin-top:3px;">
+            Category: <strong><%= item.category %></strong>
+          </div>
+
+          <div style="font-size:.9rem;margin-top:5px;">
+            Quantity: <strong><%= item.quantity %></strong>
+          </div>
+
+        </div>
+
+        <div style="font-weight:600;font-size:1.1rem;color:#111;">
+          $<%= item.price * item.quantity %>
+        </div>
+
+      </div>
+
+      <% }) %>
+
+    </div>
+
+    <div class="divider"></div>
+
+<p><strong>Order ID</strong><br>
+<span class="order-id"><%= order.paypalOrderId %></span>
+</p>
+
+<p><strong>Status</strong><br>
+<span style="color:#27ae60;font-weight:600;">Completed</span>
+</p>
+
+<div class="divider"></div>
+
+<p class="total">
+Total Paid: $<%= order.totalAmount %> <%= order.currency %>
+</p>
+
+    <div class="info-box">
+      📩 <strong>Activation Details:</strong><br>
+      Your activation key, download link, and setup instructions will be sent to your email within a few minutes.<br>
+      Please check your <strong>Inbox</strong> and <strong>Spam/Junk folder</strong> if you don’t see it.
+    </div>
+
+    <div class="success-buttons">
+
+      <a href="/" class="btn-primary-custom">
+        Continue Shopping
+      </a>
+
+      <a href="/contact" id="openSupportChat" class="btn-outline-custom">
+        Contact Support
+      </a>
+
+    </div>
+
+    <% } else { %>
+
+    <div class="success-title">Processing Payment...</div>
+    <div class="success-text">
+      Please wait while we confirm your payment.<br>
+      This usually takes a few seconds.
+    </div>
+
+    <% } %>
+
+  </div>
+</div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+
+    const btn = document.getElementById("openSupportChat");
+
+    if (!btn) return;
+
+    btn.addEventListener("click", function (e) {
+      e.preventDefault();
+
+      const openChat = () => {
+        if (window.Tawk_API && typeof window.Tawk_API.maximize === "function") {
+          window.Tawk_API.maximize();
+        } else {
+          setTimeout(openChat, 400);
+        }
+      };
+
+      openChat();
+    });
+
+  });
+</script>
+
+<%- include('_footer') %>

@@ -43,10 +43,12 @@ const OrderSchema = new mongoose.Schema({
     items: [OrderItemSchema],
     
     shippingAddress: {
-        fullName: { type: String },
+        firstName: { type: String },
+        lastName: { type: String },
         email: { type: String },
         phone: { type: String },
         address: { type: String },
+        state: { type: String },
         city: { type: String },
         zipCode: { type: String },
         country: { type: String }

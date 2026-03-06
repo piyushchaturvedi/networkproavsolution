@@ -38,54 +38,280 @@
   <meta name="twitter:image" content="https://example.com/images/twitter-banner.jpg" />
   <link rel="icon" type="image/png" href="/images/favicon.png">
   <link rel="canonical" href="https://cybersafetrust.com/">
-
+  <script>
+    (function (w, d, s, l, i) {
+      w[l] = w[l] || [];
+      w[l].push({
+        'gtm.start': new Date().getTime(),
+        event: 'gtm.js'
+      });
+      var f = d.getElementsByTagName(s)[0],
+        j = d.createElement(s),
+        dl = l != 'dataLayer' ? '&l=' + l : '';
+      j.async = true;
+      j.src =
+        'https://www.googletagmanager.com/gtm.js?id=' + i + dl;
+      f.parentNode.insertBefore(j, f);
+    })(window, document, 'script', 'dataLayer', 'GTM-PFR2HZRK');
+  </script>
 
 </head>
 <style>
   /* 1. Set the container to flexbox for proper alignment */
-.products_search_main {
+  .products_search_main {
     width: 100%;
     margin-left: 0px !important;
-    display: flex; /* ADDED/UPDATED */
-    align-items: center; /* ADDED/UPDATED: Ensures vertical centering */
-}
+    display: flex;
+    /* ADDED/UPDATED */
+    align-items: center;
+    /* ADDED/UPDATED: Ensures vertical centering */
+  }
 
-/* 2. Style the input field for merging */
-.products_search_header {
+  /* 2. Style the input field for merging */
+  .products_search_header {
     width: 70%;
     padding-block: 8px;
     padding-inline: 15px;
     border: 1px solid #f04444;
     color: #000000;
     border-radius: 10px 0 0 10px;
-    border-right: none; /* ADDED/UPDATED: Removes the right border for merging */
+    border-right: none;
+    /* ADDED/UPDATED: Removes the right border for merging */
     /* Ensure no extra vertical spacing */
     margin-bottom: 0;
-}
+  }
 
-/* 3. Style the button for merging */
-.products_search_submit_btn {
+  /* 3. Style the button for merging */
+  .products_search_submit_btn {
     width: 30%;
     padding-inline: 15px;
     padding-block: 9px;
     border-radius: 0 10px 10px 0;
-    border: 1px solid #f04444; /* Match input border */
-    border-left: none; /* ADDED/UPDATED: Removes the left border for merging */
+    border: 1px solid #f04444;
+    /* Match input border */
+    border-left: none;
+    /* ADDED/UPDATED: Removes the left border for merging */
     /* Ensure no extra vertical spacing */
-    margin-bottom: 0 !important; /* Force removal of any inherited margin */
-    height: 38px; /* Consistent height with the input field */
-    box-sizing: border-box; /* Crucial for correct height calculation */
-}
+    margin-bottom: 0 !important;
+    /* Force removal of any inherited margin */
+    height: 38px;
+    /* Consistent height with the input field */
+    box-sizing: border-box;
+    /* Crucial for correct height calculation */
+  }
+
+  /* ===== STICKY STRIP ===== */
+  .top-offer-strip {
+    background: #f7f7f7;
+    border-bottom: 1px solid #e5e5e5;
+    padding: 6px 0;
+    z-index: 9999;
+  }
+
+  .sticky-strip {
+    position: sticky;
+    top: 0;
+  }
+
+  /* Inner container */
+  .offer-inner {
+    max-width: 1600px;
+    margin: auto;
+    padding: 0 15px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-left: 14%;
+  }
+
+  /* Green pill button */
+  .auth-green-btn {
+    background: #0b0c0b;
+    color: #ffffff;
+    font-size: 12.5px;
+    font-weight: 600;
+    padding: 4px 14px 4px 10px;
+    border-radius: 16px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+  }
+
+  /* ✔ icon */
+  .check-icon-green {
+    background: #ffffff;
+    color: #22c55e;
+    font-size: 11px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Right text */
+  .offer-right {
+    font-size: 13px;
+    color: #333;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-left: 220px;
+  }
+
+  /* Black coupon tag */
+  .coupon-black {
+    background: #111;
+    color: #fff;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 4px;
+    letter-spacing: 0.5px;
+  }
+
+  /* Subtle animation */
+  .offer-right {
+    animation: slideFade 3.5s infinite;
+  }
+
+  @keyframes slideFade {
+    0% {
+      opacity: 0;
+      transform: translateX(-6px);
+    }
+
+    20% {
+      opacity: 1;
+      transform: translateX(0);
+    }
+
+    80% {
+      opacity: 1;
+    }
+
+    100% {
+      opacity: 0;
+      transform: translateX(6px);
+    }
+  }
+
+  /* Mobile friendly */
+  @media (max-width: 768px) {
+    .offer-inner {
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .offer-right {
+      font-size: 12px;
+    }
+  }
+
+
+  /* ==============================
+   FIX: TOP OFFER STRIP RESPONSIVE
+============================== */
+
+  /* Desktop only */
+  @media (min-width: 992px) {
+    .offer-inner {
+      margin-left: 14%;
+    }
+
+    .offer-right {
+      margin-left: 220px;
+    }
+  }
+
+  /* Mobile + Tablet */
+  @media (max-width: 991px) {
+
+    .top-offer-strip,
+    .sticky-strip {
+      width: 100%;
+      max-width: 100%;
+      overflow-x: hidden;
+    }
+
+    .offer-inner {
+      margin-left: 0 !important;
+      /* 🔑 FIX 1 */
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 6px;
+      padding: 8px 10px;
+    }
+
+    .offer-left {
+      width: 100%;
+      display: flex;
+      justify-content: center;
+    }
+
+    .offer-right {
+      margin-left: 0 !important;
+      /* 🔑 FIX 2 */
+      width: 100%;
+      white-space: normal;
+      /* 🔑 FIX 3 */
+      word-break: break-word;
+      font-size: 12px;
+      line-height: 1.4;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .coupon-black {
+      margin-top: 4px;
+      display: inline-block;
+    }
+  }
+
+
+
+  .auth-green-btn:hover .check-icon-green {
+    transform: scale(1.25);
+    box-shadow: 0 0 0 6px rgba(40, 167, 69, 0.2);
+  }
 </style>
 
 <body>
-  
+  <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-PFR2HZRK" height="0" width="0"
+      style="display:none;visibility:hidden"></iframe></noscript>
   <header class="new-header light-theme-header shadow-sm">
+    <div class="top-offer-strip sticky-strip">
+      <div class="offer-inner">
+
+        <!-- Green Button with ✔ -->
+        <div class="offer-left">
+          <a href="/authenticity-guarantee">
+            <span class="auth-green-btn">
+              <span class="check-icon-green">✔</span>
+              Authenticity Guarantee
+            </span>
+          </a>
+        </div>
+
+        <!-- Coupon style black tag -->
+        <div class="offer-right">
+          Watchdog Authorized Partner-Enjoy an Extra 5% Discount with Coupon
+          <span class="coupon-black">WELCOME5</span>
+        </div>
+
+      </div>
+    </div>
+
+
+
     <div class="container-fluid py-2 border-bottom">
       <div class="row align-items-center justify-content-between">
 
         <!-- 🔹 Logo (Left) -->
-        <div class="col-12 col-md-4 text-center text-md-start mb-2 mb-md-0">
+        <div class="col-12 col-md-2 text-center text-md-start mb-2 mb-md-0">
           <% if (settings.mainLogoUrl) { %>
           <a href="/" class="logo-link d-inline-block">
             <img src="<%= settings.mainLogoUrl %>" alt="NetworkProAVSolution Logo" class="header-logo-img">
@@ -95,18 +321,21 @@
           <% } %>
         </div>
 
+        <!-- <div class="col-12 col-md-2 text-center text-md-start mb-2 mb-md-0">
+    <button class="auth-btn">
+        <span class="check-icon">✔</span>
+        Guaranteed Authentic
+    </button>
+</div> -->
+
+
         <div class="col-12 col-md-4 text-center text-md-center" style="position: relative;">
           <!-- Using the original custom classes here and relying on the style block above -->
-          <form action="/products/search" method="GET" class="products_search_main d-inline-flex align-items-center" 
-                style="position: relative; display: flex; align-items: center; margin-bottom: 0;">
-                
-            <input type="text" 
-                   class="products_search_header" 
-                   name="query" 
-                   id="global-search-input" 
-                   placeholder="Search Products Here..." 
-                   autocomplete="off"
-            />
+          <form action="/products/search" method="GET" class="products_search_main d-inline-flex align-items-center"
+            style="position: relative; display: flex; align-items: center; margin-bottom: 0;">
+
+            <input type="text" class="products_search_header" name="query" id="global-search-input"
+              placeholder="Search Products Here..." autocomplete="off" />
 
             <div id="search-loader" style="
                 position: absolute; 
@@ -118,11 +347,12 @@
                 pointer-events: none;
                 z-index: 1001; 
             ">
-                <i class="fa fa-spinner fa-spin"></i>
+              <i class="fa fa-spinner fa-spin"></i>
             </div>
-            <button type="submit" class="products_search_submit_btn" style="background-color: #ef4444; color: white; border: none; height: 42px;">Search</button>
+            <button type="submit" class="products_search_submit_btn"
+              style="background-color: #ef4444; color: white; border: none; height: 42px;">Search</button>
           </form>
-          
+
           <div id="search-suggestions-container" style="
               position: absolute; 
               top: 40px; 
@@ -139,20 +369,22 @@
               border-radius: 0 0 8px 8px;
               overflow: hidden;
           ">
-            </div>
-          
+          </div>
+
         </div>
 
         <div class="col-12 col-md-4 text-center text-md-end">
           <div class="header_cart_help d-inline-flex align-items-center gap-5">
 
             <!-- Support (replaces Phone) -->
-            <div id="supportBtn" class="text-dark text-decoration-none fw-semibold header-support d-flex align-items-center" style="cursor:pointer;">
-               <img src="/image/24-hours-support.png" />
-               <div class="live_supports">
+            <div id="supportBtn"
+              class="text-dark text-decoration-none fw-semibold header-support d-flex align-items-center"
+              style="cursor:pointer;">
+              <img src="/image/24-hours-support.png" />
+              <div class="live_supports">
                 <span>Live Support</span>
                 <p class="click_here">Click Here</p>
-               </div>
+              </div>
             </div>
 
             <!-- Cart -->
@@ -209,13 +441,14 @@
                   CATEGORY
                 </a>
                 <ul class="dropdown-menu">
+                  <li><a class="dropdown-item" href="/products/watchdog">Watchdog Antimalware</a></li>
                   <li><a class="dropdown-item" href="/products">All Products</a></li>
                   <li><a class="dropdown-item" href="/products/norton">Norton Antivirus</a></li>
                   <li><a class="dropdown-item" href="/products/mcafee">McAfee Antivirus</a></li>
                   <li><a class="dropdown-item" href="/products/avast">Avast Antivirus</a></li>
                   <li><a class="dropdown-item" href="/products/bitdefender">Bitdefender Antivirus</a></li>
                   <li><a class="dropdown-item" href="/products/avg">AVG Antivirus</a></li>
-                  <li><a class="dropdown-item" href="/products/watchdog">Watchdog Antimalware</a></li>
+                  
                 </ul>
               </li>
 
@@ -224,7 +457,7 @@
                 <a href="/contact"
                   class="nav-link <%= activePage === 'contact' ? 'active text-success' : '' %>">CONTACT</a>
               </li>
-              
+
               <!-- 5. Dynamic Page: Terms & Conditions -->
               <% if (termsPage) { %>
               <li class="nav-item">
@@ -239,6 +472,8 @@
               <% if (user && user.role === 'admin') { %>
               <li class="nav-item"><a href="/admin/product/list"
                   class="nav-link <%= activePage === 'admin' ? 'active text-success' : '' %>">PRODUCT LIST</a></li>
+              <li class="nav-item"><a href="/admin/coupons"
+                  class="nav-link <%= activePage === 'coupons' ? 'active text-success' : '' %>">COUPONS</a></li>
               <li class="nav-item"><a href="/admin/product/add"
                   class="nav-link <%= activePage === 'add-product' ? 'active text-success' : '' %>">ADD PRODUCT</a></li>
               <li class="nav-item"><a href="/admin/users"
@@ -252,7 +487,7 @@
                   class="nav-link <%= activePage === 'pages' ? 'active text-success' : '' %>">CMS PAGES</a></li>
               <li class="nav-item"><a href="/admin/subscribers"
                   class="nav-link <%= activePage === 'subscribers' ? 'active text-success' : '' %>">SUBSCRIBERS</a>
-              </li> 
+              </li>
               <li class="nav-item"><a href="/admin/contact-messages"
                   class="nav-link <%= activePage === 'contact-messages' ? 'active text-success' : '' %>">MESSAGES</a>
               </li>
@@ -261,7 +496,7 @@
               <% } %>
 
               <!-- Account Dropdown - Conditional Visibility -->
-              
+
               <li class="nav-item dropdown">
                 <a class="nav-link dropdown-toggle" href="#" id="accountDropdown" role="button"
                   data-bs-toggle="dropdown" aria-expanded="false">
@@ -269,15 +504,15 @@
                 </a>
                 <ul class="dropdown-menu">
                   <% if (user) { %>
-                  <li><a class="dropdown-item" href="/profile">My Profile (<%= user.username %>)</a></li> 
-                  <li><a class="dropdown-item" href="/logout">Logout</a></li> 
+                  <li><a class="dropdown-item" href="/profile">My Profile (<%= user.username %>)</a></li>
+                  <li><a class="dropdown-item" href="/logout">Logout</a></li>
                   <% } else { %>
                   <li><a class="dropdown-item" href="/login">Login</a></li>
-                  <li><a class="dropdown-item" href="/signup">Sign Up</a></li> 
+                  <li><a class="dropdown-item" href="/signup">Sign Up</a></li>
                   <% } %>
                 </ul>
               </li>
-              
+
             </ul>
           </div>
         </div>
@@ -285,120 +520,129 @@
     </div>
 
   </header>
-   <script type="text/javascript">
-   
-   var Tawk_API = Tawk_API || {},
-     Tawk_LoadStart = new Date();
-   (function () {
-     var s1 = document.createElement("script"),
-       s0 = document.getElementsByTagName("script")[0];
-     s1.async = true;
-     s1.src = 'https://embed.tawk.to/685c654671a033190a6218a0/1iuken7h4';
-     s1.charset = 'UTF-8';
-     s1.setAttribute('crossorigin', '*');
-     s0.parentNode.insertBefore(s1, s0);
-   })();
+  <script type="text/javascript">
+    var Tawk_API = Tawk_API || {},
+      Tawk_LoadStart = new Date();
+    (function () {
+      var s1 = document.createElement("script"),
+        s0 = document.getElementsByTagName("script")[0];
+      s1.async = true;
+      s1.src = 'https://embed.tawk.to/685c654671a033190a6218a0/1iuken7h4';
+      s1.charset = 'UTF-8';
+      s1.setAttribute('crossorigin', '*');
+      s0.parentNode.insertBefore(s1, s0);
+    })();
 
-   // Handle button click to show chat
-   document.addEventListener("DOMContentLoaded", function () {
-     const supportBtn = document.getElementById("supportBtn");
+    // Handle button click to show chat
+    document.addEventListener("DOMContentLoaded", function () {
+      const supportBtn = document.getElementById("supportBtn");
 
-     // --- Auto-Suggestion Logic ---
-     const searchInput = document.getElementById('global-search-input');
-     const suggestionsContainer = document.getElementById('search-suggestions-container');
-     const loader = document.getElementById('search-loader'); 
-     let debounceTimeout;
-
+      // --- Auto-Suggestion Logic ---
+      const searchInput = document.getElementById('global-search-input');
+      const suggestionsContainer = document.getElementById('search-suggestions-container');
+      const loader = document.getElementById('search-loader');
+      let debounceTimeout;
 
 
-     const renderSuggestions = (suggestions) => {
-         suggestionsContainer.innerHTML = '';
-         if (suggestions.length === 0) {
-             suggestionsContainer.style.display = 'none';
-             return;
-         }
 
-         suggestions.forEach(product => {
-             const item = document.createElement('a');
-             item.href = `/product/${product.id}`;
-             item.classList.add('suggestion-item');
-             item.style.cssText = 'display: flex; align-items: center; padding: 8px 12px; text-decoration: none; color: #333; transition: background-color 0.2s;';
-             item.onmouseover = () => { item.style.backgroundColor = '#f0f0f0'; };
-             item.onmouseout = () => { item.style.backgroundColor = 'white'; };
+      const renderSuggestions = (suggestions) => {
+        suggestionsContainer.innerHTML = '';
+        if (suggestions.length === 0) {
+          suggestionsContainer.style.display = 'none';
+          return;
+        }
 
-             const imgUrl = product.image || '/image/default.png'; 
-             const price = product.price ? `<small style="margin-left: auto; color: #ef4444; font-weight: bold;">$${product.price.toFixed(2)}</small>` : '';
+        suggestions.forEach(product => {
+          const item = document.createElement('a');
+          item.href = `/product/${product.id}`;
+          item.classList.add('suggestion-item');
+          item.style.cssText =
+            'display: flex; align-items: center; padding: 8px 12px; text-decoration: none; color: #333; transition: background-color 0.2s;';
+          item.onmouseover = () => {
+            item.style.backgroundColor = '#f0f0f0';
+          };
+          item.onmouseout = () => {
+            item.style.backgroundColor = 'white';
+          };
 
-             item.innerHTML = `
+          const imgUrl = product.image || '/image/default.png';
+          const price = product.price ?
+            `<small style="margin-left: auto; color: #ef4444; font-weight: bold;">$${product.price.toFixed(2)}</small>` :
+            '';
+
+          item.innerHTML = `
                  <img src="${imgUrl}" alt="${product.name}" style="width: 30px; height: 30px; object-fit: contain; margin-right: 10px; border-radius: 4px; flex-shrink: 0;">
                  <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex-grow: 1;">${product.name}</span>
                  ${price}
              `;
-             suggestionsContainer.appendChild(item);
-         });
+          suggestionsContainer.appendChild(item);
+        });
 
-         suggestionsContainer.style.display = 'block';
-     };
+        suggestionsContainer.style.display = 'block';
+      };
 
-     const fetchSuggestions = async (query) => {
-         if (query.length < 2) {
-             suggestionsContainer.style.display = 'none';
-             loader.style.display = 'none'; 
-             return;
-         }
-         
-         loader.style.display = 'block'; 
+      const fetchSuggestions = async (query) => {
+        if (query.length < 2) {
+          suggestionsContainer.style.display = 'none';
+          loader.style.display = 'none';
+          return;
+        }
 
-         try {
-             const response = await fetch(`/api/products/suggest?q=${encodeURIComponent(query)}`);
-             if (!response.ok) { throw new Error('Failed to fetch suggestions'); }
-             const suggestions = await response.json();
-             renderSuggestions(suggestions);
+        loader.style.display = 'block';
 
-         } catch (error) {
-             console.error('Suggestion fetch error:', error);
-             suggestionsContainer.style.display = 'none';
-         } finally {
-             loader.style.display = 'none'; 
-         }
-     };
-     
-     if (searchInput && suggestionsContainer && loader) { 
+        try {
+          const response = await fetch(`/api/products/suggest?q=${encodeURIComponent(query)}`);
+          if (!response.ok) {
+            throw new Error('Failed to fetch suggestions');
+          }
+          const suggestions = await response.json();
+          renderSuggestions(suggestions);
+
+        } catch (error) {
+          console.error('Suggestion fetch error:', error);
+          suggestionsContainer.style.display = 'none';
+        } finally {
+          loader.style.display = 'none';
+        }
+      };
+
+      if (searchInput && suggestionsContainer && loader) {
         searchInput.addEventListener('input', (event) => {
-            clearTimeout(debounceTimeout);
-            const query = event.target.value.trim();
-            debounceTimeout = setTimeout(() => {
-                fetchSuggestions(query);
-            }, 300); 
+          clearTimeout(debounceTimeout);
+          const query = event.target.value.trim();
+          debounceTimeout = setTimeout(() => {
+            fetchSuggestions(query);
+          }, 300);
         });
 
         document.addEventListener('click', (event) => {
-            if (!event.target.closest('.products_search_main') && !event.target.closest('#search-suggestions-container')) {
-                suggestionsContainer.style.display = 'none';
-            }
+          if (!event.target.closest('.products_search_main') && !event.target.closest(
+              '#search-suggestions-container')) {
+            suggestionsContainer.style.display = 'none';
+          }
         });
 
         searchInput.addEventListener('focus', (event) => {
-            if (event.target.value.trim().length >= 2) {
-                if(suggestionsContainer.style.display === 'none' || suggestionsContainer.innerHTML === '') {
-                    fetchSuggestions(event.target.value.trim());
-                } else {
-                    suggestionsContainer.style.display = 'block';
-                }
+          if (event.target.value.trim().length >= 2) {
+            if (suggestionsContainer.style.display === 'none' || suggestionsContainer.innerHTML === '') {
+              fetchSuggestions(event.target.value.trim());
+            } else {
+              suggestionsContainer.style.display = 'block';
             }
+          }
         });
-    }
+      }
 
-     if (supportBtn) {
-       supportBtn.addEventListener("click", function () {
-         if (typeof Tawk_API !== "undefined" && Tawk_API.maximize) {
-           Tawk_API.maximize(); // Open chat popup
-         } else {
-           alert("Chat is still loading. Please try again in a moment.");
-         }
-       });
-     }
-   });
-</script>
+      if (supportBtn) {
+        supportBtn.addEventListener("click", function () {
+          if (typeof Tawk_API !== "undefined" && Tawk_API.maximize) {
+            Tawk_API.maximize(); // Open chat popup
+          } else {
+            alert("Chat is still loading. Please try again in a moment.");
+          }
+        });
+      }
+    });
+  </script>
   <!-- Bootstrap JS Bundle -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>

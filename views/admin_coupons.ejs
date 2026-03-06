@@ -1,4 +1,3 @@
-// views/admin_coupons.ejs
 <%- include('_header', { pageTitle: pageTitle, activePage: 'coupons' }) %>
 
 <style>
@@ -195,8 +194,13 @@
                             </span>
                         </td>
                         <td>
-                            <a href="#" style="color: blue;">Edit</a> |
-                            <a href="#" style="color: red;">Delete</a>
+                            <a href="/admin/coupons/edit/<%= coupon._id %>" style="color: blue;">Edit</a> |
+                            <form action="/admin/coupons/delete/<%= coupon._id %>" method="POST" style="display:inline;"
+          onsubmit="return confirm('Are you sure you want to delete this coupon?');">
+        <button type="submit" style="background:none;border:none;color:red;cursor:pointer;">
+            Delete
+        </button>
+    </form>
                         </td>
                     </tr>
                 <% }); %>

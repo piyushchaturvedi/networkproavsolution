@@ -231,7 +231,6 @@
 </div>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://www.paypal.com/sdk/js?client-id=<%= settings.paypalClientId %>&currency=USD"></script>
-
 <script>
 document.addEventListener("DOMContentLoaded", () => {
   const countrySelect = document.getElementById("country");
@@ -338,9 +337,6 @@ document.addEventListener("DOMContentLoaded", () => {
 <script>
   document.addEventListener('DOMContentLoaded', () => {
     // --------------- PAYPAL INTEGRATION ---------------
-
-
-
     const paypalContainer = document.getElementById('paypal-button-container');
     const loadingMessage = document.getElementById('paypal-loading-message');
     const form = document.getElementById('customer-details-form');
@@ -388,11 +384,16 @@ document.addEventListener("DOMContentLoaded", () => {
         },
 
         onApprove: async (data) => {
-          const res = await fetch(`/api/orders/${data.orderID}/capture`, { method: 'POST' });
+          const res = await fetch(`/api/orders/${data.orderID}/capture`, {
+            method: 'POST'
+          });
           const result = await res.json();
-          if (result.status === 'COMPLETED') window.location.href = '/checkout/success';
+          if (result.redirectUrl) {
+            window.location.href = result.redirectUrl;
+          } else {
+            alert("Payment capture failed");
+          }
         },
-
         onError: (err) => alert('PayPal Error: ' + err.message)
 
       }).render('#paypal-button-container');

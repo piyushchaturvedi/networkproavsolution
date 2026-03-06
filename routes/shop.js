@@ -2,6 +2,7 @@ import express from 'express';
 const router = express.Router();
 import fetch from 'node-fetch';
 import crypto from 'crypto';
+import { Parser } from 'json2csv';
 
 // Import Models
 import Product from '../models/product.js';
@@ -14,56 +15,75 @@ import Coupon from '../models/coupon.js';
 import Subscriber from '../models/subscriber.js';
 import path from "path";
 import fs from 'fs';
+import paypal from '@paypal/checkout-server-sdk';
 
-import { fileURLToPath } from "url";
+import {
+    fileURLToPath
+} from "url";
 
-const __filename = fileURLToPath(import.meta.url);
+const __filename = fileURLToPath(
+    import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const countriesData = JSON.parse(
-  fs.readFileSync(path.join(__dirname, "..", "public", "js", "countriesData.json"))
+    fs.readFileSync(path.join(__dirname, "..", "public", "js", "countriesData.json"))
 );
 // Home Page
 router.get('/', async (req, res) => {
-  try {
-    const testimonials = await Testimonial.find({}).sort({ createdAt: -1 });
+    try {
+        const testimonials = await Testimonial.find({}).sort({
+            createdAt: -1
+        });
 
-    // --- NEW LOGIC: Fetch products explicitly marked as featured ---
-    const featuredProducts = await Product.find({ isFeatured: true })
-      .sort({ createdAt: -1 }) // Sort by newest featured
-      .limit(4) // Limit to display 4 products
-      .lean();
+        // --- NEW LOGIC: Fetch products explicitly marked as featured ---
+        const featuredProducts = await Product.find({
+                isFeatured: true
+            })
+            .sort({
+                createdAt: -1
+            }) // Sort by newest featured
+            .limit(4) // Limit to display 4 products
+            .lean();
 
-    // --- NEW LOGIC: Fetch products explicitly marked as loved ---
-    const lovedProducts = await Product.find({ isLoved: true })
-      .sort({ rating: -1 }) // Sort by highest rating
-      .limit(4) // Limit to display 4 products
-      .lean();
+        // --- NEW LOGIC: Fetch products explicitly marked as loved ---
+        const lovedProducts = await Product.find({
+                isLoved: true
+            })
+            .sort({
+                rating: -1
+            }) // Sort by highest rating
+            .limit(4) // Limit to display 4 products
+            .lean();
 
-    res.render('index', {
-      pageTitle: res.locals.settings.metaTitle,
-      testimonials,
-      featuredProducts,
-      lovedProducts
-    });
+        res.render('index', {
+            pageTitle: res.locals.settings.metaTitle,
+            testimonials,
+            featuredProducts,
+            lovedProducts
+        });
 
-  } catch (error) {
-    console.error('Error fetching homepage data:', error);
-    res.render('index', {
-      pageTitle: res.locals.settings.metaTitle,
-      testimonials: [],
-      featuredProducts: [],
-      lovedProducts: []
-    });
-  }
+    } catch (error) {
+        console.error('Error fetching homepage data:', error);
+        res.render('index', {
+            pageTitle: res.locals.settings.metaTitle,
+            testimonials: [],
+            featuredProducts: [],
+            lovedProducts: []
+        });
+    }
 });
 
 
 // Signup Page (GET)
 router.get('/signup', (req, res) => {
     // If user is already logged in, redirect to profile
-    if (req.session.user) return res.redirect('/profile'); 
-    res.render('signup', { pageTitle: "Sign Up", error: null, message: null, formData: {} }); 
+    if (req.session.user) return res.redirect('/profile');
+    res.render('signup', {
+        pageTitle: "Sign Up",
+        error: null,
+        message: null,
+        formData: {}
+    });
 });
 
 // Signup Submission (POST)
@@ -99,7 +119,11 @@ router.post('/signup', async (req, res) => {
         // 2. Check Duplicate User
         // ---------------------------
         const existingUser = await User.findOne({
-            $or: [{ email }, { username }]
+            $or: [{
+                email
+            }, {
+                username
+            }]
         });
 
         if (existingUser) {
@@ -120,7 +144,7 @@ router.post('/signup', async (req, res) => {
             lastName,
             email,
             // username,
-            password,   // IMPORTANT: Add hashing later
+            password, // IMPORTANT: Add hashing later
             phone,
             address: address || '',
             role: 'customer',
@@ -160,55 +184,134 @@ router.post('/signup', async (req, res) => {
 
 
 // Login Page (GET)
-router.get('/login', (req, res) => { 
-    if (req.session.user) return res.redirect('/profile'); 
-    res.render('login', { pageTitle: "Login | Customer", errorMessage: null }); 
+router.get('/login', (req, res) => {
+    if (req.session.user) return res.redirect('/profile');
+    res.render('login', {
+        pageTitle: "Login | Customer",
+        errorMessage: null
+    });
 });
 
 // Login Submission (POST)
 router.post('/login', async (req, res) => {
     // loginIdentifier can be username or email
-    const { loginIdentifier, password } = req.body; 
-    
+    const {
+        loginIdentifier,
+        password
+    } = req.body;
+
     try {
         // Allow login using either username or email
         const identifier = loginIdentifier.toLowerCase().trim();
-        const user = await User.findOne({ 
-            $or: [{ username: identifier }, { email: identifier }]
+        const user = await User.findOne({
+            $or: [{
+                username: identifier
+            }, {
+                email: identifier
+            }]
         });
 
         if (user && user.password === password) {
-            
+
             if (user.isBlocked) {
-                return res.render('login', { pageTitle: "Login | Customer", errorMessage: 'Your account has been disabled by the administrator.' });
+                return res.render('login', {
+                    pageTitle: "Login | Customer",
+                    errorMessage: 'Your account has been disabled by the administrator.'
+                });
             }
-            
+
             // Set session data for customer user (or admin)
-            req.session.user = { 
-                id: user._id, 
+            req.session.user = {
+                id: user._id,
                 // username: user.username, 
-                role: user.role, 
+                role: user.role,
                 email: user.email,
                 isBlocked: user.isBlocked,
                 fullName: user.fullName
             };
-            
+
             // If the user is an admin, redirect them to the admin dashboard
             if (user.role === 'admin') {
                 return res.redirect('/admin');
             }
-            
-            res.redirect('/profile'); 
-            
-        } else { 
-            res.render('login', { pageTitle: "Login | Customer", errorMessage: 'Invalid username/email or password.' }); 
+
+            res.redirect('/profile');
+
+        } else {
+            res.render('login', {
+                pageTitle: "Login | Customer",
+                errorMessage: 'Invalid username/email or password.'
+            });
         }
-        
+
     } catch (error) {
         console.error('Login error:', error);
-        res.status(500).render('login', { pageTitle: "Login | Customer", errorMessage: 'An error occurred during login.' });
+        res.status(500).render('login', {
+            pageTitle: "Login | Customer",
+            errorMessage: 'An error occurred during login.'
+        });
     }
 });
+
+// =======================================
+// GOOGLE MERCHANT FEED – WATCHDOG (CSV)
+// URL: /feeds/google-watchdog.csv
+// =======================================
+router.get('/admin/generate-watchdog-feed', async (req, res) => {
+    try {
+        const products = await Product.find({ brand: 'Watchdog' }).lean();
+
+        if (!products.length) {
+            return res.status(404).json({ message: 'No Watchdog products found' });
+        }
+
+        const baseUrl = `${req.protocol}://${req.get('host')}`;
+
+        const feedData = products.map(product => ({
+            id: product.id,
+            title: product.name,
+            description: product.shortDesc 
+                || (Array.isArray(product.longDesc) ? product.longDesc.join(' ') : ''),
+            link: `${baseUrl}/product/${product.id}`,
+            image_link: `${baseUrl}${product.image}`,
+            price: `${product.price} USD`,
+            availability: 'in stock',
+            brand: product.brand,
+            condition: 'new',
+            identifier_exists: 'no'
+        }));
+
+        const fields = [
+            'id','title','description','link','image_link',
+            'price','availability','brand','condition','identifier_exists'
+        ];
+
+        const parser = new Parser({ fields });
+        const csv = parser.parse(feedData);
+
+        // ✅ FIXED PATH (MOST IMPORTANT)
+        const feedsDir = path.join(__dirname, '..', 'public', 'feeds');
+        if (!fs.existsSync(feedsDir)) {
+            fs.mkdirSync(feedsDir, { recursive: true });
+        }
+
+        fs.writeFileSync(
+            path.join(feedsDir, 'google-watchdog.csv'),
+            csv
+        );
+
+        res.json({
+            success: true,
+            message: 'Google Watchdog feed generated successfully',
+            file: '/feeds/google-watchdog.csv'
+        });
+
+    } catch (err) {
+        console.error('Feed generation error:', err);
+        res.status(500).json({ error: 'Failed to generate feed' });
+    }
+});
+
 
 
 // Profile Page (Requires Authentication)
@@ -217,10 +320,10 @@ router.get('/profile', async (req, res) => {
     if (!req.session.user) {
         return res.redirect('/login');
     }
-    
+
     // Fetch the latest user data to ensure the 'isBlocked' status is current
     const user = await User.findById(req.session.user.id).lean();
-    
+
     // If user was deleted or fetch failed, destroy session
     if (!user) {
         req.session.destroy();
@@ -229,17 +332,25 @@ router.get('/profile', async (req, res) => {
 
     // Check if user was blocked since session started
     if (user.isBlocked) {
-         req.session.destroy();
-         return res.render('login', { pageTitle: "Login | Customer", errorMessage: 'Your account has been disabled by the administrator. Please log in again.' });
+        req.session.destroy();
+        return res.render('login', {
+            pageTitle: "Login | Customer",
+            errorMessage: 'Your account has been disabled by the administrator. Please log in again.'
+        });
     }
 
-    res.render('profile', { pageTitle: "My Profile", user: user });
+    res.render('profile', {
+        pageTitle: "My Profile",
+        user: user
+    });
 });
 
 // Logout
-router.get('/logout', (req, res) => { 
+router.get('/logout', (req, res) => {
     req.session.destroy(err => {
-        if (err) { console.error('Error destroying session:', err); }
+        if (err) {
+            console.error('Error destroying session:', err);
+        }
         // Redirect to homepage after logging out
         res.redirect('/');
     });
@@ -252,38 +363,45 @@ router.get('/logout', (req, res) => {
 
 // GET: Forgot Password Page
 router.get('/forgot-password', (req, res) => {
-    res.render('forgot_password', { 
-        pageTitle: "Forgot Password", 
-        message: req.query.message || null, 
-        error: req.query.error || null 
+    res.render('forgot_password', {
+        pageTitle: "Forgot Password",
+        message: req.query.message || null,
+        error: req.query.error || null
     });
 });
 
 
 // POST: Forgot Password Request
 router.post('/forgot-password', async (req, res) => {
-    const { email } = req.body;
+    const {
+        email
+    } = req.body;
 
     // Basic validation
     if (!email) {
-        return res.render('forgot_password', { 
-            pageTitle: "Forgot Password", 
-            error: 'Email is required.', 
-            message: null 
+        return res.render('forgot_password', {
+            pageTitle: "Forgot Password",
+            error: 'Email is required.',
+            message: null
         });
     }
 
     try {
         // Find user (exclude admin users)
-        const user = await User.findOne({ email, role: { $ne: 'admin' } });
+        const user = await User.findOne({
+            email,
+            role: {
+                $ne: 'admin'
+            }
+        });
 
         // ALWAYS show success message (avoid user enumeration attacks)
         const successMsg = 'If an account exists for that email, a password reset link has been sent.';
 
         // If no user exists → still return same success message
         if (!user) {
-            return res.render('forgot_password', { 
-                pageTitle: "Forgot Password", 
+            return res.render('forgot_password', {
+                pageTitle: "Forgot Password",
                 message: successMsg,
                 error: null
             });
@@ -294,12 +412,12 @@ router.post('/forgot-password', async (req, res) => {
 
         // Setup transporter (from stored admin SMTP settings)
         const transporter = req.app.locals.getTransporter(req.app.locals);
-        const senderEmail = transporter?.options?.auth?.user;
+        const senderEmail = transporter ?.options?.auth?.user;
 
         if (!transporter || !senderEmail) {
             console.error("Email transporter not configured correctly.");
-            return res.render('forgot_password', { 
-                pageTitle: "Forgot Password", 
+            return res.render('forgot_password', {
+                pageTitle: "Forgot Password",
                 error: 'Email service error. Please contact support.',
                 message: null
             });
@@ -317,7 +435,7 @@ router.post('/forgot-password', async (req, res) => {
 
         // Email Body
         const mailOptions = {
-            from: false? senderEmail: "support@networkproavsolution.com", // Use support email if configured
+            from: false ? senderEmail : "support@networkproavsolution.com", // Use support email if configured
             to: user.email,
             subject: 'Password Reset Request',
             html: `
@@ -339,16 +457,16 @@ router.post('/forgot-password', async (req, res) => {
         console.log(`Reset email sent to ${user.email}. Token: ${resetToken}`);
 
         // Return success response
-        return res.render('forgot_password', { 
-            pageTitle: "Forgot Password", 
+        return res.render('forgot_password', {
+            pageTitle: "Forgot Password",
             message: successMsg,
             error: null
         });
 
     } catch (error) {
         console.error('Forgot password error:', error);
-        res.render('forgot_password', { 
-            pageTitle: "Forgot Password", 
+        res.render('forgot_password', {
+            pageTitle: "Forgot Password",
             error: 'An unexpected error occurred.',
             message: null
         });
@@ -358,26 +476,30 @@ router.post('/forgot-password', async (req, res) => {
 
 // 6. RESET PASSWORD FORM (GET Route)
 router.get('/reset-password', async (req, res) => {
-    const { token } = req.query;
+    const {
+        token
+    } = req.query;
 
     if (!token) {
-        return res.render('reset_password', { 
-            pageTitle: 'Reset Password', 
+        return res.render('reset_password', {
+            pageTitle: 'Reset Password',
             error: 'Missing password reset token.',
             message: null,
             token: null,
-            user: null 
+            user: null
         });
     }
 
     try {
         const user = await User.findOne({
             resetToken: token,
-            resetTokenExpiry: { $gt: Date.now() }
+            resetTokenExpiry: {
+                $gt: Date.now()
+            }
         });
 
         if (!user) {
-            return res.render('reset_password', { 
+            return res.render('reset_password', {
                 pageTitle: 'Reset Password',
                 error: 'Invalid or expired password reset link. Please restart the forgot password process.',
                 message: null,
@@ -386,7 +508,7 @@ router.get('/reset-password', async (req, res) => {
             });
         }
 
-        return res.render('reset_password', { 
+        return res.render('reset_password', {
             pageTitle: 'Set New Password',
             error: null,
             message: null,
@@ -396,7 +518,7 @@ router.get('/reset-password', async (req, res) => {
 
     } catch (error) {
         console.error('Error verifying reset token:', error);
-        return res.render('reset_password', { 
+        return res.render('reset_password', {
             pageTitle: 'Reset Password',
             error: 'Server error while verifying the reset link.',
             message: null,
@@ -409,14 +531,20 @@ router.get('/reset-password', async (req, res) => {
 
 // 7. RESET PASSWORD SUBMISSION (POST Route)
 router.post('/reset-password', async (req, res) => {
-    const { token, password, confirmPassword } = req.body;
+    const {
+        token,
+        password,
+        confirmPassword
+    } = req.body;
 
     // 1. Validate password match
     if (!password || !confirmPassword || password !== confirmPassword) {
-        const userWithToken = await User.findOne({ resetToken: token });
+        const userWithToken = await User.findOne({
+            resetToken: token
+        });
 
-        return res.render('reset_password', { 
-            pageTitle: 'Set New Password', 
+        return res.render('reset_password', {
+            pageTitle: 'Set New Password',
             error: 'Passwords do not match.',
             message: null,
             token,
@@ -428,11 +556,13 @@ router.post('/reset-password', async (req, res) => {
         // 2. Validate token and its expiry
         const user = await User.findOne({
             resetToken: token,
-            resetTokenExpiry: { $gt: Date.now() }
+            resetTokenExpiry: {
+                $gt: Date.now()
+            }
         });
 
         if (!user) {
-            return res.render('reset_password', { 
+            return res.render('reset_password', {
                 pageTitle: 'Reset Password',
                 error: 'Invalid or expired password reset link. Please try again.',
                 message: null,
@@ -442,7 +572,7 @@ router.post('/reset-password', async (req, res) => {
         }
 
         // 3. Update password + clear the token
-        user.password = password;  // ⚠ Must hash in production
+        user.password = password; // ⚠ Must hash in production
         user.resetToken = null;
         user.resetTokenExpiry = null;
 
@@ -457,7 +587,7 @@ router.post('/reset-password', async (req, res) => {
 
     } catch (error) {
         console.error('Password reset error:', error);
-        return res.render('reset_password', { 
+        return res.render('reset_password', {
             pageTitle: 'Reset Password',
             error: 'Server error while updating password.',
             message: null,
@@ -470,24 +600,30 @@ router.post('/reset-password', async (req, res) => {
 
 // Countries
 router.get('/location/countries', (req, res) => {
-  res.json(Object.keys(countriesData));
+    res.json(Object.keys(countriesData));
 });
 
 // States
 router.get('/location/states', (req, res) => {
-  res.json(Object.keys(countriesData[req.query.country]?.states || {}));
+    res.json(Object.keys(countriesData[req.query.country]?.states || {}));
 });
 
 // Cities
 router.get('/location/cities', (req, res) => {
-  res.json(countriesData[req.query.country]?.states[req.query.state] || []);
+    res.json(countriesData[req.query.country]?.states[req.query.state] || []);
 });
 
 // Save checkout details in DB
-router.post('/checkout/save-details', async (req, res) => {
-  await User.updateOne({ email: req.body.email }, { $set: req.body });
-  res.json({ success: true });
-});
+// router.post('/checkout/save-details', async (req, res) => {
+//     await User.updateOne({
+//         email: req.body.email
+//     }, {
+//         $set: req.body
+//     });
+//     res.json({
+//         success: true
+//     });
+// });
 
 
 
@@ -495,38 +631,55 @@ router.post('/checkout/save-details', async (req, res) => {
 // Add this POST route after your /cart/update route (around line 300)
 router.post('/cart/apply-coupon', async (req, res) => {
     // CRITICAL FIX: Ensure couponCode is defined
-    const { couponCode } = req.body;
+    const {
+        couponCode
+    } = req.body;
     const cart = req.session.cart || [];
 
     if (cart.length === 0) {
-        return res.status(400).json({ message: 'Cart is empty. Cannot apply coupon.' });
+        return res.status(400).json({
+            message: 'Cart is empty. Cannot apply coupon.'
+        });
     }
-    
+
     if (!couponCode) {
-        return res.status(400).json({ message: 'Coupon code is missing.' });
+        return res.status(400).json({
+            message: 'Coupon code is missing.'
+        });
     }
 
     try {
-        const coupon = await Coupon.findOne({ code: couponCode.toUpperCase(), isActive: true });
+        const coupon = await Coupon.findOne({
+            code: couponCode.toUpperCase(),
+            isActive: true
+        });
 
-        if (!coupon) { 
+        if (!coupon) {
             delete req.session.coupon;
-            return res.status(404).json({ message: 'Invalid or inactive coupon code.' });
+            return res.status(404).json({
+                message: 'Invalid or inactive coupon code.'
+            });
         }
-        
+
         if (coupon.expiresAt && new Date() > coupon.expiresAt) {
             delete req.session.coupon;
-            return res.status(400).json({ message: 'Coupon has expired.' });
+            return res.status(400).json({
+                message: 'Coupon has expired.'
+            });
         }
 
         const cartProductIds = cart.map(item => item.id);
-        const fullProducts = await Product.find({ id: { $in: cartProductIds } }).lean();
+        const fullProducts = await Product.find({
+            id: {
+                $in: cartProductIds
+            }
+        }).lean();
 
         let isAnyProductEligible = false;
-        
+
         for (const item of cart) {
             const product = fullProducts.find(p => p.id === item.id);
-            
+
             const isEligible = (
                 coupon.appliesTo === 'all' ||
                 (coupon.appliesTo === 'products' && coupon.targetProductIds.includes(item.id)) ||
@@ -535,21 +688,25 @@ router.post('/cart/apply-coupon', async (req, res) => {
 
             if (isEligible) {
                 isAnyProductEligible = true;
-                break; 
+                break;
             }
         }
 
         if (!isAnyProductEligible) {
             delete req.session.coupon;
-            return res.status(400).json({ message: 'Coupon is not valid for any eligible product in your cart.' });
+            return res.status(400).json({
+                message: 'Coupon is not valid for any eligible product in your cart.'
+            });
         }
 
         const subtotal = cart.reduce((total, item) => total + (item.price * item.quantity), 0);
-        if (subtotal < coupon.minOrderAmount) { 
+        if (subtotal < coupon.minOrderAmount) {
             delete req.session.coupon;
-            return res.status(400).json({ message: `Minimum order amount of $${coupon.minOrderAmount.toFixed(2)} required.` });
+            return res.status(400).json({
+                message: `Minimum order amount of $${coupon.minOrderAmount.toFixed(2)} required.`
+            });
         }
-        
+
         // Store the valid coupon in the session (including all targeting details)
         req.session.coupon = {
             code: coupon.code,
@@ -561,11 +718,16 @@ router.post('/cart/apply-coupon', async (req, res) => {
             minOrderAmount: coupon.minOrderAmount
         };
 
-        res.json({ message: `Coupon ${coupon.code} applied successfully!`, coupon: req.session.coupon });
+        res.json({
+            message: `Coupon ${coupon.code} applied successfully!`,
+            coupon: req.session.coupon
+        });
 
-    } catch (error) { 
+    } catch (error) {
         console.error('Error applying coupon:', error);
-        res.status(500).json({ message: 'Failed to apply coupon due to server error.' });
+        res.status(500).json({
+            message: 'Failed to apply coupon due to server error.'
+        });
     }
 });
 
@@ -574,24 +736,35 @@ router.post('/cart/apply-coupon', async (req, res) => {
 router.post('/cart/remove-coupon', (req, res) => {
     if (req.session.coupon) {
         delete req.session.coupon;
-        return res.json({ message: 'Coupon removed successfully!' });
+        return res.json({
+            message: 'Coupon removed successfully!'
+        });
     }
-    res.status(404).json({ message: 'No coupon currently applied.' });
+    res.status(404).json({
+        message: 'No coupon currently applied.'
+    });
 });
 
 
 router.post('/subscribe', async (req, res) => {
-    const { email } = req.body; // Ensure 'email' is correctly destructured
+    const {
+        email
+    } = req.body; // Ensure 'email' is correctly destructured
 
     if (!email) {
-        return res.status(400).json({ success: false, message: 'Email address is required.' });
+        return res.status(400).json({
+            success: false,
+            message: 'Email address is required.'
+        });
     }
 
     try {
         // NOTE: The Subscriber model must be correctly imported at the top of shop.js
-        const newSubscriber = new Subscriber({ email: email });
+        const newSubscriber = new Subscriber({
+            email: email
+        });
         await newSubscriber.save();
-        
+
         // Optional: Add email notification logic here if needed.
         // --- NEW: Send Admin Notification Email ---
         const dynamicTransporter = req.app.locals.getTransporter(req.app.locals);
@@ -615,16 +788,25 @@ router.post('/subscribe', async (req, res) => {
             console.warn('Nodemailer not configured or recipient missing. Subscription saved, but email notification skipped.');
         }
         // --- END NEW ---
-        res.status(201).json({ success: true, message: 'Thank you for subscribing!' });
+        res.status(201).json({
+            success: true,
+            message: 'Thank you for subscribing!'
+        });
 
     } catch (error) {
         console.error('Subscription error:', error);
-        
+
         if (error.code === 11000) {
-            return res.status(409).json({ success: false, message: 'This email is already subscribed.' });
+            return res.status(409).json({
+                success: false,
+                message: 'This email is already subscribed.'
+            });
         }
 
-        res.status(500).json({ success: false, message: 'Failed to subscribe. Please try again.' });
+        res.status(500).json({
+            success: false,
+            message: 'Failed to subscribe. Please try again.'
+        });
     }
 });
 
@@ -641,25 +823,44 @@ router.get('/products/search', async (req, res) => {
         // Use a case-insensitive regular expression to search across 
         // multiple relevant fields (name, shortDesc, brand, category)
         const searchRegex = new RegExp(searchQuery, 'i');
-        
+
         const products = await Product.find({
-            $or: [
-                { name: { $regex: searchRegex } },
-                { shortDesc: { $regex: searchRegex } },
-                { brand: { $regex: searchRegex } },
-                { category: { $regex: searchRegex } }
+            $or: [{
+                    name: {
+                        $regex: searchRegex
+                    }
+                },
+                {
+                    shortDesc: {
+                        $regex: searchRegex
+                    }
+                },
+                {
+                    brand: {
+                        $regex: searchRegex
+                    }
+                },
+                {
+                    category: {
+                        $regex: searchRegex
+                    }
+                }
             ]
-        }).sort({ name: 1 }); // Sort by name ascending
+        }).sort({
+            name: 1
+        }); // Sort by name ascending
 
         // Group the search results by category for consistent display
         const groupedProducts = products.reduce((acc, product) => {
-            if (!acc[product.category]) { acc[product.category] = []; }
+            if (!acc[product.category]) {
+                acc[product.category] = [];
+            }
             acc[product.category].push(product);
             return acc;
         }, {});
 
-        res.render('products', { 
-            groupedProducts, 
+        res.render('products', {
+            groupedProducts,
             pageTitle: `Search Results for: "${searchQuery}"`
         });
 
@@ -687,20 +888,29 @@ router.get('/api/products/suggest', async (req, res) => {
         const searchRegex = new RegExp('^' + query, 'i');
 
         const suggestions = await Product.find({
-            $or: [
-                { name: { $regex: searchRegex } },
-                { brand: { $regex: searchRegex } }
-            ]
-        })
-        // Select necessary fields only to keep payload small
-        .select('name id image price') 
-        .limit(6) // Limit the number of suggestions
-        .lean();
+                $or: [{
+                        name: {
+                            $regex: searchRegex
+                        }
+                    },
+                    {
+                        brand: {
+                            $regex: searchRegex
+                        }
+                    }
+                ]
+            })
+            // Select necessary fields only to keep payload small
+            .select('name id image price')
+            .limit(6) // Limit the number of suggestions
+            .lean();
 
         res.json(suggestions);
     } catch (error) {
         console.error('Error fetching search suggestions:', error);
-        res.status(500).json({ error: 'Internal server error' });
+        res.status(500).json({
+            error: 'Internal server error'
+        });
     }
 });
 
@@ -711,11 +921,16 @@ router.get('/products', async (req, res) => {
     try {
         const products = await Product.find({});
         const groupedProducts = products.reduce((acc, product) => {
-            if (!acc[product.category]) { acc[product.category] = []; }
+            if (!acc[product.category]) {
+                acc[product.category] = [];
+            }
             acc[product.category].push(product);
             return acc;
         }, {});
-        res.render('products', { groupedProducts, pageTitle: "All Antivirus Products" });
+        res.render('products', {
+            groupedProducts,
+            pageTitle: "All Antivirus Products"
+        });
     } catch (err) {
         console.error('Error fetching products:', err);
         res.status(500).send('Server Error: Could not load products.');
@@ -725,13 +940,20 @@ router.get('/products', async (req, res) => {
 // NEW: Norton Antivirus Product Listing Page
 router.get('/products/norton', async (req, res) => {
     try {
-        const products = await Product.find({ category: 'Norton' }); // Filter by category 'Norton'
+        const products = await Product.find({
+            category: 'Norton'
+        }); // Filter by category 'Norton'
         const groupedProducts = products.reduce((acc, product) => {
-            if (!acc[product.category]) { acc[product.category] = []; }
+            if (!acc[product.category]) {
+                acc[product.category] = [];
+            }
             acc[product.category].push(product);
             return acc;
         }, {});
-        res.render('products_norton', { groupedProducts, pageTitle: "Norton Antivirus Products" });
+        res.render('products_norton', {
+            groupedProducts,
+            pageTitle: "Norton Antivirus Products"
+        });
     } catch (err) {
         console.error('Error fetching Norton products:', err);
         res.status(500).send('Server Error: Could not load Norton products.');
@@ -741,13 +963,20 @@ router.get('/products/norton', async (req, res) => {
 // NEW: McAfee Antivirus Product Listing Page
 router.get('/products/mcafee', async (req, res) => {
     try {
-        const products = await Product.find({ category: 'McAfee' }); // Filter by category 'McAfee'
+        const products = await Product.find({
+            category: 'McAfee'
+        }); // Filter by category 'McAfee'
         const groupedProducts = products.reduce((acc, product) => {
-            if (!acc[product.category]) { acc[product.category] = []; }
+            if (!acc[product.category]) {
+                acc[product.category] = [];
+            }
             acc[product.category].push(product);
             return acc;
         }, {});
-        res.render('products_mcafee', { groupedProducts, pageTitle: "McAfee Antivirus Products" });
+        res.render('products_mcafee', {
+            groupedProducts,
+            pageTitle: "McAfee Antivirus Products"
+        });
     } catch (err) {
         console.error('Error fetching McAfee products:', err);
         res.status(500).send('Server Error: Could not load McAfee products.');
@@ -756,13 +985,20 @@ router.get('/products/mcafee', async (req, res) => {
 
 router.get('/products/avast', async (req, res) => {
     try {
-        const products = await Product.find({ category: 'AVAST' }); // Filter by category 'AVAST'
+        const products = await Product.find({
+            category: 'AVAST'
+        }); // Filter by category 'AVAST'
         const groupedProducts = products.reduce((acc, product) => {
-            if (!acc[product.category]) { acc[product.category] = []; }
+            if (!acc[product.category]) {
+                acc[product.category] = [];
+            }
             acc[product.category].push(product);
             return acc;
         }, {});
-        res.render('products_avast', { groupedProducts, pageTitle: "Avast Antivirus Products" });
+        res.render('products_avast', {
+            groupedProducts,
+            pageTitle: "Avast Antivirus Products"
+        });
     } catch (err) {
         console.error('Error fetching avast products:', err);
         res.status(500).send('Server Error: Could not load avast products.');
@@ -771,13 +1007,20 @@ router.get('/products/avast', async (req, res) => {
 
 router.get('/products/bitdefender', async (req, res) => {
     try {
-        const products = await Product.find({ category: 'BITDEFENDER' }); // Filter by category 'Bitdefender'
+        const products = await Product.find({
+            category: 'BITDEFENDER'
+        }); // Filter by category 'Bitdefender'
         const groupedProducts = products.reduce((acc, product) => {
-            if (!acc[product.category]) { acc[product.category] = []; }
+            if (!acc[product.category]) {
+                acc[product.category] = [];
+            }
             acc[product.category].push(product);
             return acc;
         }, {});
-        res.render('products_bitdefender', { groupedProducts, pageTitle: "Bitdefender Antivirus Products" });
+        res.render('products_bitdefender', {
+            groupedProducts,
+            pageTitle: "Bitdefender Antivirus Products"
+        });
     } catch (err) {
         console.error('Error fetching Bitdefender products:', err);
         res.status(500).send('Server Error: Could not load Bitdefender products.');
@@ -786,13 +1029,20 @@ router.get('/products/bitdefender', async (req, res) => {
 
 router.get('/products/avg', async (req, res) => {
     try {
-        const products = await Product.find({ category: 'AVG' }); // Filter by category 'AVG'
+        const products = await Product.find({
+            category: 'AVG'
+        }); // Filter by category 'AVG'
         const groupedProducts = products.reduce((acc, product) => {
-            if (!acc[product.category]) { acc[product.category] = []; }
+            if (!acc[product.category]) {
+                acc[product.category] = [];
+            }
             acc[product.category].push(product);
             return acc;
         }, {});
-        res.render('products_avg', { groupedProducts, pageTitle: "AVG Antivirus Products" });
+        res.render('products_avg', {
+            groupedProducts,
+            pageTitle: "AVG Antivirus Products"
+        });
     } catch (err) {
         console.error('Error fetching AVG products:', err);
         res.status(500).send('Server Error: Could not load AVG products.');
@@ -801,13 +1051,20 @@ router.get('/products/avg', async (req, res) => {
 
 router.get('/products/watchdog', async (req, res) => {
     try {
-        const products = await Product.find({ category: 'Watchdog' }); // Filter by category 'Watchdog'
+        const products = await Product.find({
+            category: 'Watchdog'
+        }); // Filter by category 'Watchdog'
         const groupedProducts = products.reduce((acc, product) => {
-            if (!acc[product.category]) { acc[product.category] = []; }
+            if (!acc[product.category]) {
+                acc[product.category] = [];
+            }
             acc[product.category].push(product);
             return acc;
         }, {});
-        res.render('products_watchdog', { groupedProducts, pageTitle: "Watchdog Antimalware Products" });
+        res.render('products_watchdog', {
+            groupedProducts,
+            pageTitle: "Watchdog Antimalware Products"
+        });
     } catch (err) {
         console.error('Error fetching Watchdog products:', err);
         res.status(500).send('Server Error: Could not load Watchdog products.');
@@ -819,11 +1076,24 @@ router.get('/products/watchdog', async (req, res) => {
 router.get('/product/:id', async (req, res) => {
     try {
         const productId = req.params.id;
-        const product = await Product.findOne({ id: productId });
+        const product = await Product.findOne({
+            id: productId
+        });
         if (product) {
-            const relatedProducts = await Product.find({ category: product.category, id: { $ne: product.id } }).limit(4);
-            res.render('product_detail', { product, relatedProducts, pageTitle: product.name });
-        } else { res.status(404).send('Product not found'); }
+            const relatedProducts = await Product.find({
+                category: product.category,
+                id: {
+                    $ne: product.id
+                }
+            }).limit(4);
+            res.render('product_detail', {
+                product,
+                relatedProducts,
+                pageTitle: product.name
+            });
+        } else {
+            res.status(404).send('Product not found');
+        }
     } catch (err) {
         console.error('Error fetching product details:', err);
         res.status(500).send('Server Error: Could not load product details.');
@@ -831,29 +1101,67 @@ router.get('/product/:id', async (req, res) => {
 });
 
 // User Login Page
-router.get('/login', (req, res) => { res.render('login', { pageTitle: "Login | CyberSafeTrust", errorMessage: null }); });
+router.get('/login', (req, res) => {
+    res.render('login', {
+        pageTitle: "Login | CyberSafeTrust",
+        errorMessage: null
+    });
+});
 
 router.post('/login', async (req, res) => {
-    const { username, password } = req.body;
+    const {
+        username,
+        password
+    } = req.body;
     try {
-        const user = await User.findOne({ username });
+        const user = await User.findOne({
+            username
+        });
         if (user && user.password === password) {
-            req.session.user = { id: user._id, username: user.username, role: user.role };
+            req.session.user = {
+                id: user._id,
+                username: user.username,
+                role: user.role
+            };
             res.redirect('/');
-        } else { res.render('login', { pageTitle: "Login | CyberSafeTrust", errorMessage: 'Invalid username or password.' }); }
+        } else {
+            res.render('login', {
+                pageTitle: "Login | CyberSafeTrust",
+                errorMessage: 'Invalid username or password.'
+            });
+        }
     } catch (error) {
         console.error('Login error:', error);
-        res.status(500).render('login', { pageTitle: "Login | CyberSafeTrust", errorMessage: 'An error occurred during login.' });
+        res.status(500).render('login', {
+            pageTitle: "Login | CyberSafeTrust",
+            errorMessage: 'An error occurred during login.'
+        });
     }
 });
 
 // Contact Page
-router.get('/contact', (req, res) => { res.render('contact', { pageTitle: "Contact Us", message: null, error: null }); });
+router.get('/contact', (req, res) => {
+    res.render('contact', {
+        pageTitle: "Contact Us",
+        message: null,
+        error: null
+    });
+});
 
 router.post('/contact', async (req, res) => {
-    const { email, subject, message } = req.body;
-    if (!email || !subject || !message) { return res.render('contact', { pageTitle: "Contact Us", message: null, error: 'Please fill in all fields.' }); }
-    
+    const {
+        email,
+        subject,
+        message
+    } = req.body;
+    if (!email || !subject || !message) {
+        return res.render('contact', {
+            pageTitle: "Contact Us",
+            message: null,
+            error: 'Please fill in all fields.'
+        });
+    }
+
     try {
         const dynamicTransporter = req.app.locals.getTransporter(req.app.locals);
         const adminEmailRecipient = req.app.locals.settings.contactRecipientEmail || 'chaturvedipiyush40@gmail.com';
@@ -906,159 +1214,426 @@ router.post('/contact', async (req, res) => {
         }
 
 
-        res.render('contact', { pageTitle: "Contact Us", message: 'Your message has been sent successfully!', error: null });
+        res.render('contact', {
+            pageTitle: "Contact Us",
+            message: 'Your message has been sent successfully!',
+            error: null
+        });
 
     } catch (error) {
         console.error('Error sending contact email or saving message:', error);
-        res.render('contact', { pageTitle: "Contact Us", message: null, error: 'Failed to send your message. Please try again later.' });
+        res.render('contact', {
+            pageTitle: "Contact Us",
+            message: null,
+            error: 'Failed to send your message. Please try again later.'
+        });
     }
 });
 
 // CART ROUTES
-router.get('/cart', (req, res) => { res.render('cart', { pageTitle: 'Your Shopping Cart' }); });
+router.get('/cart', (req, res) => {
+    res.render('cart', {
+        pageTitle: 'Your Shopping Cart'
+    });
+});
 
 router.post('/cart/add', async (req, res) => {
-    const { productId, quantity = 1 } = req.body;
+    const {
+        productId,
+        quantity = 1
+    } = req.body;
     try {
-        const product = await Product.findOne({ id: productId });
-        if (!product) { return res.status(404).json({ message: 'Product not found.' }); }
-        if (!req.session.cart) { req.session.cart = []; }
+        const product = await Product.findOne({
+            id: productId
+        });
+        if (!product) {
+            return res.status(404).json({
+                message: 'Product not found.'
+            });
+        }
+        if (!req.session.cart) {
+            req.session.cart = [];
+        }
         const existingItemIndex = req.session.cart.findIndex(item => item.id === productId);
-        if (existingItemIndex > -1) { req.session.cart[existingItemIndex].quantity += parseInt(quantity); }
-        else { req.session.cart.push({ id: product.id, name: product.name, price: product.price, image: product.image, quantity: parseInt(quantity), }); }
-        res.json({ message: 'Product added to cart!', cart: req.session.cart });
+        if (existingItemIndex > -1) {
+            req.session.cart[existingItemIndex].quantity += parseInt(quantity);
+        } else {
+            req.session.cart.push({
+                id: product.id,
+                name: product.name,
+                price: product.price,
+                image: product.image,
+                quantity: parseInt(quantity),
+            });
+        }
+        res.json({
+            message: 'Product added to cart!',
+            cart: req.session.cart
+        });
     } catch (error) {
         console.error('Error adding to cart:', error);
-        res.status(500).json({ message: 'Failed to add product to cart.' });
+        res.status(500).json({
+            message: 'Failed to add product to cart.'
+        });
     }
 });
 
 router.post('/cart/update', (req, res) => {
-    const { productId, quantity } = req.body;
-    if (!req.session.cart) { return res.status(400).json({ message: 'Cart is empty.' }); }
+    const {
+        productId,
+        quantity
+    } = req.body;
+    if (!req.session.cart) {
+        return res.status(400).json({
+            message: 'Cart is empty.'
+        });
+    }
     const itemIndex = req.session.cart.findIndex(item => item.id === productId);
     if (itemIndex > -1) {
-        if (quantity <= 0) { req.session.cart.splice(itemIndex, 1); }
-        else { req.session.cart[itemIndex].quantity = parseInt(quantity); }
-        res.json({ message: 'Cart updated!', cart: req.session.cart });
-    } else { res.status(404).json({ message: 'Product not found in cart.' }); }
+        if (quantity <= 0) {
+            req.session.cart.splice(itemIndex, 1);
+        } else {
+            req.session.cart[itemIndex].quantity = parseInt(quantity);
+        }
+        res.json({
+            message: 'Cart updated!',
+            cart: req.session.cart
+        });
+    } else {
+        res.status(404).json({
+            message: 'Product not found in cart.'
+        });
+    }
 });
 
 // CHECKOUT ROUTES
 router.get('/checkout', (req, res) => {
-    if (!req.session.cart || req.session.cart.length === 0) { return res.redirect('/cart'); }
-    res.render('checkout', { 
+    if (!req.session.cart || req.session.cart.length === 0) {
+        return res.redirect('/cart');
+    }
+    res.render('checkout', {
         pageTitle: 'Checkout',
-        customer: req.session.user ? { fullName: req.session.user.username, email: req.session.user.email, phone: '', address: '', city: '', zipCode: '', country: '' } : null
+        customer: req.session.user ? {
+            fullName: req.session.user.username,
+            email: req.session.user.email,
+            phone: '',
+            address: '',
+            city: '',
+            zipCode: '',
+            country: ''
+        } : null
     });
 });
 
-router.post('/checkout/save-details', (req, res) => { req.session.customerDetails = req.body; res.status(200).json({ message: 'Customer details saved to session.' }); });
+router.post('/checkout/save-details', (req, res) => {
+    console.log("save-details", req.body);
+    req.session.customerDetails = req.body;
+    res.status(200).json({
+        message: 'Customer details saved to session.'
+    });
+});
 
 // PayPal API Routes
 router.post('/api/orders', async (req, res) => {
     if (!req.session.cart || req.session.cart.length === 0) {
-        return res.status(400).json({ error: 'Cart is empty. Cannot create order.' });
+        return res.status(400).json({
+            error: 'Cart is empty. Cannot create order.'
+        });
     }
 
-    // 1. Calculate total price
     const total = req.session.cart
         .reduce((sum, item) => sum + item.price * item.quantity, 0)
         .toFixed(2);
 
-    // 2. Prepare a readable description
     const description = req.session.cart
         .map(item => `${item.name} (x${item.quantity})`)
         .join(', ');
 
     try {
         const accessToken = await req.app.locals.generateAccessToken(req.app.locals);
-        console.log('PayPal Access Token:', accessToken);
-        const baseUrl = `${req.protocol}://${req.get('host')}`;
-        const returnUrl = `${baseUrl}/checkout/success`;
-        const cancelUrl = `${baseUrl}/checkout/cancel`;
-        // 3. Create PayPal order with ONLY ONE purchase unit
-        const response = await fetch(`https://api-m.sandbox.paypal.com/v2/checkout/orders`, {
+
+        const PAYPAL_BASE_URL =
+            process.env.PAYPAL_MODE === 'live' ?
+            'https://api-m.paypal.com' :
+            'https://api-m.sandbox.paypal.com';
+
+        console.log('PayPal MODE:', process.env.PAYPAL_MODE);
+        console.log('PayPal URL:', PAYPAL_BASE_URL);
+
+        const response = await fetch(
+            `${PAYPAL_BASE_URL}/v2/checkout/orders`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${accessToken}`
+                },
+                body: JSON.stringify({
+                    intent: 'CAPTURE',
+                    purchase_units: [{
+                        amount: {
+                            currency_code: 'USD',
+                            value: total
+                        },
+                        description
+                    }]
+                })
+            }
+        );
+
+        const order = await response.json();
+        console.log('PayPal Order:', order);
+
+        if (!order.id) {
+            return res.status(400).json(order);
+        }
+
+        res.json({
+            orderID: order.id
+        });
+
+    } catch (error) {
+        console.error('PayPal Create Error:', error);
+        res.status(500).json({
+            error: 'Internal server error'
+        });
+    }
+});
+
+
+
+router.post('/api/orders/:orderID/capture', async (req, res) => {
+    const {
+        orderID
+    } = req.params;
+    try {
+        const accessToken = await req.app.locals.generateAccessToken(req.app.locals);
+        const PAYPAL_BASE_URL =
+            process.env.PAYPAL_MODE === 'live' ?
+            'https://api-m.paypal.com' :
+            'https://api-m.sandbox.paypal.com';
+        const response = await fetch(`${PAYPAL_BASE_URL}/v2/checkout/orders/${orderID}/capture`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 Authorization: `Bearer ${accessToken}`
             },
-            body: JSON.stringify({
-                intent: 'CAPTURE',
-                purchase_units: [{
-                    amount: {
-                        currency_code: 'USD',
-                        value: total
-                    },
-                    description: description
-                }],
-                application_context: {
-                    return_url: returnUrl,
-                    cancel_url: cancelUrl
-                }
-            })
         });
-
-        const order = await response.json();
-        console.log('PayPal Create Order Response:', order);
-        if (!order.id) {
-            console.error('PayPal Create Error:', order);
-            return res.status(400).json({ error: order.message || 'Failed to create PayPal order' });
-        }
-
-        // 🔥 MUST RETURN orderID
-        return res.json({ orderID: order.id });
-
-    } catch (error) {
-        console.error('PayPal Create Exception:', error);
-        return res.status(500).json({ error: 'Internal server error' });
-    }
-});
-
-
-router.post('/api/orders/:orderID/capture', async (req, res) => {
-    const { orderID } = req.params;
-    try {
-        const accessToken = await req.app.locals.generateAccessToken(req.app.locals);
-        const response = await fetch(`https://api-m.sandbox.paypal.com/v2/checkout/orders/${orderID}/capture`, { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` }, });
+        console.log("req.session.cart",req.session.cart)
+        console.log("piyush session", req.session.customerDetails)
         const captureData = await response.json();
         if (response.ok) {
             const newOrder = new Order({
                 userId: req.session.user ? req.session.user.id : null,
                 customerName: req.session.customerDetails ? req.session.customerDetails.fullName : (req.session.user ? req.session.user.username : 'Guest'),
                 customerEmail: req.session.customerDetails ? req.session.customerDetails.email : (req.session.user ? req.session.user.email : 'guest@example.com'),
+                customerEmail: req.session.customerDetails ? req.session.customerDetails.email : (req.session.user ? req.session.user.email : 'guest@example.com'),
                 paypalOrderId: captureData.id,
                 paypalPayerId: captureData.payer.payer_id,
                 status: captureData.status,
                 totalAmount: parseFloat(captureData.purchase_units[0].payments.captures[0].amount.value),
                 currency: captureData.purchase_units[0].payments.captures[0].amount.currency_code,
-                items: req.session.cart.map(item => ({ productId: item.id, name: item.name, price: item.price, quantity: item.quantity, image: item.image })),
+                items: req.session.cart.map(item => ({
+                    productId: item.id,
+                    name: item.name,
+                    price: item.price,
+                    quantity: item.quantity,
+                    image: item.image
+                })),
                 shippingAddress: req.session.customerDetails || {}
             });
-            await newOrder.save(); console.log('Order saved to DB:', newOrder); req.session.cart = []; delete req.session.customerDetails; res.json(captureData);
-        } else { console.error('PayPal capture order error:', captureData); res.status(response.status).json({ error: captureData.message || 'Failed to capture PayPal order' }); }
+            await newOrder.save();
+            console.log('Order saved to DB:', newOrder);
+            req.session.cart = [];
+            delete req.session.customerDetails;
+            // res.json(captureData);
+            res.json({
+            success: true,
+            redirectUrl: `/thank-you?orderId=${captureData?.id}`
+        });
+        } else {
+            console.error('PayPal capture order error:', captureData);
+            res.status(response.status).json({
+                error: captureData.message || 'Failed to capture PayPal order'
+            });
+        }
     } catch (error) {
         console.error('Error capturing PayPal order or saving order to DB:', error);
-        res.status(500).json({ error: 'Internal server error' });
+        res.status(500).json({
+            error: 'Internal server error'
+        });
     }
 });
 
-router.get('/checkout/success', (req, res) => { res.send('<h1>Payment Successful!</h1><p>Thank you for your purchase.</p><a href="/">Go Home</a>'); });
-router.get('/checkout/cancel', (req, res) => { res.send('<h1>Payment Cancelled</h1><p>Your payment was cancelled. Please try again.</p><a href="/">Go Home</a>'); });
+// ========================================
+// PAYPAL WEBHOOK (SAVE ORDER HERE)
+// ========================================
+router.post('/api/paypal/webhook', express.json({ type: '*/*' }), async (req, res) => {
+    try {
+
+        const event = req.body;
+        console.log("Webhook Event:", event.event_type);
+
+        if (event.event_type === 'PAYMENT.CAPTURE.COMPLETED') {
+
+            const capture = event.resource;
+
+            const paypalOrderId =
+                capture.supplementary_data.related_ids.order_id;
+
+            // Prevent duplicate
+            const existingOrder = await Order.findOne({ paypalOrderId });
+            if (existingOrder) {
+                return res.status(200).json({ message: 'Already saved' });
+            }
+
+            const accessToken =
+                await req.app.locals.generateAccessToken(req.app.locals);
+
+            const PAYPAL_BASE_URL =
+                process.env.PAYPAL_MODE === 'live'
+                    ? 'https://api-m.paypal.com'
+                    : 'https://api-m.sandbox.paypal.com';
+
+            const response = await fetch(
+                `${PAYPAL_BASE_URL}/v2/checkout/orders/${paypalOrderId}`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${accessToken}`
+                    }
+                }
+            );
+
+            const orderDetails = await response.json();
+
+            const newOrder = new Order({
+                paypalOrderId,
+                paypalPayerId: capture.payer.payer_id,
+                status: capture.status,
+                totalAmount: capture.amount.value,
+                currency: capture.amount.currency_code,
+                items: orderDetails.purchase_units[0].items || [],
+                shippingAddress: orderDetails.purchase_units[0].shipping || {}
+            });
+
+            await newOrder.save();
+
+            console.log("Order saved via webhook:", newOrder._id);
+        }
+
+        res.status(200).json({ received: true });
+
+    } catch (error) {
+        console.error("Webhook Error:", error);
+        res.status(500).send("Webhook error");
+    }
+});
+
+router.get('/thank-you', async (req, res) => {
+
+    const { orderId } = req.query;
+
+    if (!orderId) return res.redirect('/');
+
+    let order = await Order.findOne({ paypalOrderId: orderId }).lean();
+    console.log("ordds",order)
+    if (!order) {
+        return res.render('thank_you', {
+            pageTitle: 'Processing...',
+            order: null
+        });
+    }
+
+    // 🔥 Attach category to each item
+  for (let item of order.items) {
+    const product = await Product.findOne({ id: item.productId }).lean();
+    item.category = product?.category || "N/A";
+  }
+
+  console.log("ordds",order)
+
+    // Clear session
+    req.session.cart = [];
+    delete req.session.customerDetails;
+
+    res.render('thank_you', {
+        pageTitle: 'Order Confirmed',
+        order
+    });
+});
+
+router.post('/create-paypal-order', async (req, res) => {
+    const cart = req.session.cart || [];
+    if (cart.length === 0) {
+        return res.status(400).json({
+            error: 'Cart is empty'
+        });
+    }
+
+    // Calculate total
+    let total = 0;
+    cart.forEach(item => {
+        total += item.price * item.quantity;
+    });
+
+    const request = new paypal.orders.OrdersCreateRequest();
+    request.prefer("return=representation");
+    request.requestBody({
+        intent: 'CAPTURE',
+        purchase_units: [{
+            amount: {
+                currency_code: 'USD',
+                value: total.toFixed(2)
+            }
+        }]
+    });
+
+    try {
+        const order = await client.execute(request);
+        // Return ONLY the JSON object containing the ID
+        res.status(200).json({
+            id: order.result.id
+        });
+    } catch (err) {
+        console.error('PayPal Order Creation Error:', err);
+        res.status(500).json({
+            error: 'Failed to create order'
+        });
+    }
+});
+
+router.get('/checkout/success', (req, res) => {
+    res.send('<h1>Payment Successful!</h1><p>Thank you for your purchase.</p><a href="/">Go Home</a>');
+});
+router.get('/checkout/cancel', (req, res) => {
+    res.send('<h1>Payment Cancelled</h1><p>Your payment was cancelled. Please try again.</p><a href="/">Go Home</a>');
+});
 
 // ROUTE FOR DISPLAYING DYNAMIC CMS PAGES (Publicly accessible)
 router.get('/:slug', async (req, res) => {
     try {
-        const page = await Page.findOne({ slug: req.params.slug });
-        if (page) { res.render('dynamic_page', { page, pageTitle: page.title }); }
-        else { res.status(404).send('Page not found'); }
+        const page = await Page.findOne({
+            slug: req.params.slug
+        });
+        if (page) {
+            res.render('dynamic_page', {
+                page,
+                pageTitle: page.title
+            });
+        } else {
+            res.status(404).send('Page not found');
+        }
     } catch (error) {
         console.error('Error fetching dynamic page:', error);
         res.status(500).send('Server Error: Could not load page.');
     }
 });
 
-router.get('/login', (req, res) => { res.render('login', { pageTitle: "login", message: null, error: null }); });
+router.get('/login', (req, res) => {
+    res.render('login', {
+        pageTitle: "login",
+        message: null,
+        error: null
+    });
+});
 
 export default router;

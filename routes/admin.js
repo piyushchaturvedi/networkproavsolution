@@ -89,6 +89,33 @@ router.get('/product/list', isAuthenticated, async (req, res) => {
     }
 });
 
+// DELETE PRODUCT
+router.post('/product/delete/:id', isAuthenticated, async (req, res) => {
+    try {
+        const productId = req.params.id;
+
+        const product = await Product.findOneAndDelete({ id: productId });
+
+        if (!product) {
+            return res.redirect('/admin/product/list?error=Product not found');
+        }
+
+        // Optional: delete uploaded image from server
+        if (product.image && product.image.startsWith('/uploads/products/')) {
+            const imagePath = path.join(process.cwd(), 'public', product.image);
+            fs.unlink(imagePath, err => {
+                if (err) console.error('Image delete error:', err);
+            });
+        }
+
+        res.redirect('/admin/product/list?message=Product deleted successfully!');
+    } catch (error) {
+        console.error('Error deleting product:', error);
+        res.redirect('/admin/product/list?error=Failed to delete product');
+    }
+});
+
+
 // 1. Add GET Route to display form and coupon list
 router.get('/coupons', isAuthenticated, async (req, res) => {
     try {
@@ -151,6 +178,79 @@ router.post('/coupons/add', isAuthenticated, async (req, res) => {
     }
 });
 
+// GET: Edit Coupon Page
+router.get('/coupons/edit/:id', isAuthenticated, async (req, res) => {
+    try {
+        const coupon = await Coupon.findById(req.params.id);
+        if (!coupon) {
+            return res.redirect('/admin/coupons?error=Coupon not found');
+        }
+
+        const products = await Product.find({}).select('id name').lean();
+        const categories = await Category.find({}).select('name').lean();
+
+        res.render('admin_coupon_edit', {
+            coupon,
+            products,
+            categories,
+            pageTitle: 'Edit Coupon',
+            message: null,
+            error: null
+        });
+    } catch (err) {
+        console.error(err);
+        res.redirect('/admin/coupons?error=Failed to load coupon');
+    }
+});
+
+
+// POST: Update Coupon
+router.post('/coupons/update/:id', isAuthenticated, async (req, res) => {
+    try {
+        const data = req.body;
+
+        data.code = data.code.toUpperCase();
+        data.isActive = data.isActive === 'on';
+        data.usageLimit = parseInt(data.usageLimit);
+        data.minOrderAmount = parseFloat(data.minOrderAmount);
+        data.discountValue = parseFloat(data.discountValue);
+
+        const { appliesTo, targetProductIds, targetCategoryNames } = data;
+
+        data.targetProductIds =
+            appliesTo === 'products'
+                ? (Array.isArray(targetProductIds) ? targetProductIds : targetProductIds ? [targetProductIds] : [])
+                : [];
+
+        data.targetCategoryNames =
+            appliesTo === 'categories'
+                ? (Array.isArray(targetCategoryNames) ? targetCategoryNames : targetCategoryNames ? [targetCategoryNames] : [])
+                : [];
+
+        data.appliesTo = appliesTo;
+
+        await Coupon.findByIdAndUpdate(req.params.id, data, { runValidators: true });
+
+        res.redirect('/admin/coupons?message=Coupon updated successfully!');
+    } catch (err) {
+        console.error(err);
+        res.redirect('/admin/coupons?error=Failed to update coupon');
+    }
+});
+
+
+// POST: Delete Coupon
+router.post('/coupons/delete/:id', isAuthenticated, async (req, res) => {
+    try {
+        await Coupon.findByIdAndDelete(req.params.id);
+        res.redirect('/admin/coupons?message=Coupon deleted successfully!');
+    } catch (err) {
+        console.error(err);
+        res.redirect('/admin/coupons?error=Failed to delete coupon');
+    }
+});
+
+
 
 // PRODUCT MANAGEMENT
 router.get('/product/edit/:id', isAuthenticated, async (req, res) => {
@@ -185,7 +285,7 @@ router.post('/product/update/:id', isAuthenticated, uploadProductImageMiddleware
         updatedData.isLoved = !!updatedData.isLoved;       // 'true' becomes true, undefined becomes false
         // --- END NEW ---
         const product = await Product.findOneAndUpdate({ id: productId }, updatedData, { new: true });
-        if (product) { res.redirect('/admin?message=Product updated successfully!'); }
+        if (product) { res.redirect('/admin/product/list?message=Product updated successfully!'); }
         else { res.status(404).send('Product not found for update.'); }
     } catch (error) {
         console.error('Error updating product:', error);
@@ -219,7 +319,7 @@ router.post('/product/add', isAuthenticated, uploadProductImageMiddleware, async
 
         const newProduct = new Product(newProductData);
         await newProduct.save();
-        res.redirect('/admin?message=Product added successfully!');
+        res.redirect('/admin/product/list?message=Product added successfully!');
     } catch (error) {
         console.error('Error adding new product:', error);
         const categories = await Category.find({});

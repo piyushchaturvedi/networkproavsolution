@@ -103,21 +103,29 @@ app.locals.uploadCampaignBannerImage = multer({
 
 app.locals.generateAccessToken = async function (locals) {
     try {
-        const clientId = locals.settings.paypalClientId || process.env.PAYPAL_CLIENT_ID;
-        const secret = locals.settings.paypalSecret || process.env.PAYPAL_CLIENT_SECRET;
+        const isLive = process.env.PAYPAL_MODE === 'live';
+
+        // const clientId = locals.settings.paypalClientId;
+        // const secret  = locals.settings.paypalSecret;
+
+        const clientId = process.env.PAYPAL_CLIENT_ID;
+        const secret = process.env.PAYPAL_CLIENT_SECRET;
 
         if (!clientId || !secret) {
             throw new Error("PayPal Client ID or Secret is missing.");
         }
 
-        // Encode to Base64
+        const PAYPAL_BASE_URL = isLive
+            ? "https://api-m.paypal.com"
+            : "https://api-m.sandbox.paypal.com";
+
+        // Encode credentials
         const auth = Buffer.from(`${clientId}:${secret}`).toString("base64");
 
-        // Request PayPal OAuth Token
-        const response = await fetch("https://api-m.sandbox.paypal.com/v1/oauth2/token", {
+        const response = await fetch(`${PAYPAL_BASE_URL}/v1/oauth2/token`, {
             method: "POST",
             headers: {
-                "Authorization": `Basic ${auth}`,
+                Authorization: `Basic ${auth}`,
                 "Content-Type": "application/x-www-form-urlencoded"
             },
             body: "grant_type=client_credentials"
@@ -125,18 +133,19 @@ app.locals.generateAccessToken = async function (locals) {
 
         const data = await response.json();
 
-        if (!response.ok) {
-            console.error("PayPal Access Token Error:", data);
-            throw new Error("Failed to generate PayPal Access Token");
+        if (!response.ok || !data.access_token) {
+            console.error("PayPal Token Error:", data);
+            throw new Error("Failed to generate PayPal access token");
         }
 
         return data.access_token;
 
     } catch (error) {
-        console.error("generateAccessToken Error:", error);
+        console.error("generateAccessToken Error:", error.message);
         throw error;
     }
 };
+
 
 
 
