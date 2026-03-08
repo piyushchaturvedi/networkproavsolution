@@ -1,5 +1,6 @@
 import express from 'express';
 const router = express.Router();
+import nodemailer from 'nodemailer';
 
 import path from 'path';
 import fs from 'fs';
@@ -86,6 +87,52 @@ router.get('/product/list', isAuthenticated, async (req, res) => {
     } catch (error) {
         console.error('Error fetching products for admin dashboard:', error);
         res.status(500).send('Server Error: Could not load admin dashboard.');
+    }
+});
+
+// Route to Mark Order as Complete
+router.post('/orders/:id', async (req, res) => {
+    try {
+        
+        const orderId = req.params.id;
+        
+        await Order.findByIdAndUpdate(orderId, { 
+            OrderCompleteStatus: 'Completed' 
+        });
+
+        // req.flash('success_msg', 'Order marked as completed successfully.');
+        return res.redirect('/admin/orders?message=Order marked as completed successfully.');
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Server Error');
+    }
+});
+
+
+router.post('/send-email', isAuthenticated, async (req, res) => {
+    try {
+        console.log('Email Request Body:', req.body); // Debug log to check incoming data
+        const { toEmail, subject, message, orderId } = req.body;
+
+        const transporter = nodemailer.createTransport({
+            service: 'gmail', // or your provider
+            auth: {
+                user: process.env.EMAIL_USER,
+                pass: process.env.EMAIL_PASS 
+            }
+        });
+
+        await transporter.sendMail({
+            from: process.env.EMAIL_USER,
+            to: toEmail,
+            subject: subject,
+            text: message
+        });
+
+        res.redirect('/admin/orders?message=Email sent successfully to ' + toEmail);
+    } catch (error) {
+        console.error('Email Error:', error);
+        res.redirect('/admin/orders?error=Failed to send email.');
     }
 });
 

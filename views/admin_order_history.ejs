@@ -125,6 +125,7 @@
         <th>Payment Status</th>
         <th>Completion Status</th>
         <th>Order Date</th>
+        <th>Actions</th>
       </tr>
     </thead>
     <tbody>
@@ -147,13 +148,13 @@
           <% const s = order.shippingAddress || {}; %>
 
           <div style="
-background:#f9fafb;
-padding:10px 12px;
-border-radius:8px;
-font-size:13px;
-line-height:1.5;
-min-width:200px;
-">
+            background:#f9fafb;
+            padding:10px 12px;
+            border-radius:8px;
+            font-size:13px;
+            line-height:1.5;
+            min-width:200px;
+            ">
 
             <strong>
               <%= s.fullName || s.firstName + " " + s.lastName || order.customerName || "Guest" %>
@@ -189,8 +190,26 @@ min-width:200px;
         </td>
         <td data-label="Status"><%= order.status %></td>
         <td data-label="OrderCompleteStatus"><%= order.OrderCompleteStatus %></td>
+
         <td data-label="Order Date"><%= order.createdAt.toLocaleDateString() %>
           <%= order.createdAt.toLocaleTimeString() %></td>
+        <td data-label="Actions">
+          <button type="button" class="btn btn-sm btn-info" 
+                data-bs-toggle="modal" 
+                data-bs-target="#emailModal" 
+                data-email="<%= s.email || order.customerEmail || 'N/A' %>" data-orderid="<%= order._id %>" 
+                data-orderid="<%= order._id %>"
+                data-total="<%= order.totalAmount %>"
+                data-items='<%= JSON.stringify(order.items) %>'>
+                <i class="fas fa-envelope"></i> Send Email
+          </button>
+          <% if (order.OrderCompleteStatus !== 'Completed') { %>
+          <form action="/admin/orders/<%= order._id %>" method="POST" style="display:inline;">
+            <button type="submit" class="btn btn-sm btn-success">Mark Complete</button>
+          </form>
+          <% } %>
+
+        </td>
       </tr>
       <% }); %>
       <% } else { %>
@@ -203,3 +222,84 @@ min-width:200px;
 </div>
 
 <%- include('_footer') %>
+
+
+<div class="modal fade" id="emailModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Send Order Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="/admin/send-email" method="POST">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">To:</label>
+                        <input type="email" name="toEmail" id="modalEmail" class="form-control" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Subject:</label>
+                        <input type="text" name="subject" id="modalSubject" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Message:</label>
+                        <textarea name="message" id="modalMessage" class="form-control" rows="8" required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">Send Email</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    const emailModal = document.getElementById('emailModal');
+    emailModal.addEventListener('show.bs.modal', function (event) {
+        const button = event.relatedTarget;
+        
+        // Data attributes se information nikalna
+        const email = button.getAttribute('data-email');
+        const orderId = button.getAttribute('data-orderid');
+        const total = button.getAttribute('data-total');
+        const items = JSON.parse(button.getAttribute('data-items'));
+
+        const modalEmailInput = emailModal.querySelector('#modalEmail');
+        const modalSubjectInput = emailModal.querySelector('input[name="subject"]');
+        const modalMessageTextarea = emailModal.querySelector('textarea[name="message"]');
+
+        // Fields fill karna
+        modalEmailInput.value = email;
+        modalSubjectInput.value = `Order Update: ID #${orderId} - NetworkProAVSolution`;
+
+        // Multiple Items ki list format karna
+        let itemsList = "";
+        items.forEach(item => {
+            itemsList += `- ${item.name} (x${item.quantity}) - $${item.price.toFixed(2)}\n`;
+        });
+
+        // Aapka bataya hua Message Template
+        const fullMessage = `Hello,
+
+Thank you for choosing NetworkProAVSolution.
+
+Your order has been successfully received and is currently being processed.
+
+Order Details:
+Order ID: #${orderId}
+
+Items:
+${itemsList}
+
+Total Amount: $${total}
+
+Our team will review and process your order shortly. You will receive another notification once your order is confirmed or shipped.
+
+If you have any questions, please feel free to contact us.
+
+Thank you for trusting NetworkProAVSolution.`;
+
+        modalMessageTextarea.value = fullMessage;
+    });
+</script>
