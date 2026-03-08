@@ -16,7 +16,7 @@ import Subscriber from '../models/subscriber.js';
 import path from "path";
 import fs from 'fs';
 import paypal from '@paypal/checkout-server-sdk';
-
+import { sendAdminOrderNotification, sendCustomerOrderNotification } from "../utils/whatsapp.js";
 import {
     fileURLToPath
 } from "url";
@@ -1325,143 +1325,161 @@ router.get('/checkout', (req, res) => {
     });
 });
 
-router.post('/checkout/save-details', (req, res) => {
-    console.log("save-details", req.body);
-    req.session.customerDetails = req.body;
-    res.status(200).json({
-        message: 'Customer details saved to session.'
+router.post('/checkout/save-details', async (req, res) => {
+
+  const cart = req.session.cart || [];
+
+  if (cart.length === 0) {
+    return res.json({ error: "Cart empty" });
+  }
+
+  const total = cart.reduce((sum, item) =>
+    sum + item.price * item.quantity, 0);
+
+  let order = await Order.findOne({
+    sessionId: req.session.id,
+    status: "pending"
+  });
+
+  if (!order) {
+
+    order = new Order({
+      sessionId: req.session.id,
+      userId: req.session.user ? req.session.user.id : null,
+      status: "pending",
+      OrderCompleteStatus:"pending",
+      totalAmount: total,
+      items: cart.map(item => ({
+        productId: item.id,
+        name: item.name,
+        price: item.price,
+        quantity: item.quantity,
+        image: item.image
+      })),
+      shippingAddress: req.body
     });
+
+  } else {
+
+    order.shippingAddress = req.body;
+
+  }
+
+  await order.save();
+
+  req.session.orderId = order._id;
+
+  res.json({ success: true, orderId: order._id });
+
 });
 
 // PayPal API Routes
 router.post('/api/orders', async (req, res) => {
-    if (!req.session.cart || req.session.cart.length === 0) {
-        return res.status(400).json({
-            error: 'Cart is empty. Cannot create order.'
-        });
-    }
 
-    const total = req.session.cart
-        .reduce((sum, item) => sum + item.price * item.quantity, 0)
-        .toFixed(2);
+  const orderId = req.session.orderId;
 
-    const description = req.session.cart
-        .map(item => `${item.name} (x${item.quantity})`)
-        .join(', ');
+  if (!orderId) {
+    return res.status(400).json({ error: "Order not created yet" });
+  }
 
-    try {
-        const accessToken = await req.app.locals.generateAccessToken(req.app.locals);
+  const order = await Order.findById(orderId);
 
-        const PAYPAL_BASE_URL =
-            process.env.PAYPAL_MODE === 'live' ?
-            'https://api-m.paypal.com' :
-            'https://api-m.sandbox.paypal.com';
+  const total = order.totalAmount.toFixed(2);
 
-        console.log('PayPal MODE:', process.env.PAYPAL_MODE);
-        console.log('PayPal URL:', PAYPAL_BASE_URL);
+  // create PayPal order
+  const accessToken = await req.app.locals.generateAccessToken(req.app.locals);
 
-        const response = await fetch(
-            `${PAYPAL_BASE_URL}/v2/checkout/orders`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${accessToken}`
-                },
-                body: JSON.stringify({
-                    intent: 'CAPTURE',
-                    purchase_units: [{
-                        amount: {
-                            currency_code: 'USD',
-                            value: total
-                        },
-                        description
-                    }]
-                })
-            }
-        );
+  const PAYPAL_BASE_URL =
+    process.env.PAYPAL_MODE === 'live'
+      ? 'https://api-m.paypal.com'
+      : 'https://api-m.sandbox.paypal.com';
 
-        const order = await response.json();
-        console.log('PayPal Order:', order);
-
-        if (!order.id) {
-            return res.status(400).json(order);
+  const response = await fetch(`${PAYPAL_BASE_URL}/v2/checkout/orders`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${accessToken}`
+    },
+    body: JSON.stringify({
+      intent: 'CAPTURE',
+      purchase_units: [{
+        amount: {
+          currency_code: 'USD',
+          value: total
         }
+      }]
+    })
+  });
 
-        res.json({
-            orderID: order.id
-        });
+  const paypalOrder = await response.json();
 
-    } catch (error) {
-        console.error('PayPal Create Error:', error);
-        res.status(500).json({
-            error: 'Internal server error'
-        });
-    }
+  order.paypalOrderId = paypalOrder.id;
+  await order.save();
+
+  res.json({ orderID: paypalOrder.id });
+
 });
 
 
 
 router.post('/api/orders/:orderID/capture', async (req, res) => {
-    const {
-        orderID
-    } = req.params;
-    try {
-        const accessToken = await req.app.locals.generateAccessToken(req.app.locals);
-        const PAYPAL_BASE_URL =
-            process.env.PAYPAL_MODE === 'live' ?
-            'https://api-m.paypal.com' :
-            'https://api-m.sandbox.paypal.com';
-        const response = await fetch(`${PAYPAL_BASE_URL}/v2/checkout/orders/${orderID}/capture`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${accessToken}`
-            },
-        });
-        console.log("req.session.cart",req.session.cart)
-        console.log("piyush session", req.session.customerDetails)
-        const captureData = await response.json();
-        if (response.ok) {
-            const newOrder = new Order({
-                userId: req.session.user ? req.session.user.id : null,
-                customerName: req.session.customerDetails ? req.session.customerDetails.fullName : (req.session.user ? req.session.user.username : 'Guest'),
-                customerEmail: req.session.customerDetails ? req.session.customerDetails.email : (req.session.user ? req.session.user.email : 'guest@example.com'),
-                customerEmail: req.session.customerDetails ? req.session.customerDetails.email : (req.session.user ? req.session.user.email : 'guest@example.com'),
-                paypalOrderId: captureData.id,
-                paypalPayerId: captureData.payer.payer_id,
-                status: captureData.status,
-                totalAmount: parseFloat(captureData.purchase_units[0].payments.captures[0].amount.value),
-                currency: captureData.purchase_units[0].payments.captures[0].amount.currency_code,
-                items: req.session.cart.map(item => ({
-                    productId: item.id,
-                    name: item.name,
-                    price: item.price,
-                    quantity: item.quantity,
-                    image: item.image
-                })),
-                shippingAddress: req.session.customerDetails || {}
-            });
-            await newOrder.save();
-            console.log('Order saved to DB:', newOrder);
-            req.session.cart = [];
-            delete req.session.customerDetails;
-            // res.json(captureData);
-            res.json({
-            success: true,
-            redirectUrl: `/thank-you?orderId=${captureData?.id}`
-        });
-        } else {
-            console.error('PayPal capture order error:', captureData);
-            res.status(response.status).json({
-                error: captureData.message || 'Failed to capture PayPal order'
-            });
-        }
-    } catch (error) {
-        console.error('Error capturing PayPal order or saving order to DB:', error);
-        res.status(500).json({
-            error: 'Internal server error'
-        });
+
+  const { orderID } = req.params;
+
+  const order = await Order.findOne({
+    paypalOrderId: orderID
+  });
+
+  if (!order) {
+    return res.status(404).json({ error: "Order not found" });
+  }
+
+  const accessToken =
+    await req.app.locals.generateAccessToken(req.app.locals);
+
+  const PAYPAL_BASE_URL =
+    process.env.PAYPAL_MODE === 'live'
+      ? 'https://api-m.paypal.com'
+      : 'https://api-m.sandbox.paypal.com';
+
+  const response = await fetch(
+    `${PAYPAL_BASE_URL}/v2/checkout/orders/${orderID}/capture`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${accessToken}`
+      }
     }
+  );
+
+  const captureData = await response.json();
+
+  if (response.ok) {
+
+    order.status = "success";
+    order.paypalPayerId = captureData.payer.payer_id;
+
+    await order.save();
+    await sendAdminOrderNotification(order);
+    // await sendCustomerOrderNotification(order);
+    req.session.cart = [];
+
+    return res.json({
+      success: true,
+      redirectUrl: `/thank-you?orderId=${orderID}`
+    });
+
+  } else {
+
+    order.status = "failed";
+    await order.save();
+    await sendAdminOrderNotification(order);
+    // await sendCustomerOrderNotification(order);
+    res.status(400).json({ error: "Payment failed" });
+
+  }
+
 });
 
 // ========================================

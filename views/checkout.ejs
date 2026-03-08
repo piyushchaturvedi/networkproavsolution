@@ -239,6 +239,30 @@ document.addEventListener("DOMContentLoaded", () => {
   const errorBox = document.getElementById("form-error-msg");
   const form = document.getElementById("customer-details-form");
 
+  let saveTimer;
+
+form.addEventListener("keyup", () => {
+
+  clearTimeout(saveTimer);
+
+  saveTimer = setTimeout(async () => {
+
+    const formData = Object.fromEntries(new FormData(form).entries());
+
+    await fetch("/checkout/save-details", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(formData)
+    });
+
+    console.log("Customer details auto saved");
+
+  }, 800); // wait 800ms after typing
+
+});
+
   // ---------------------------
   // 1. Load country list
   // ---------------------------

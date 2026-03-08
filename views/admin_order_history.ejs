@@ -122,7 +122,8 @@
         <th>Total Amount</th>
         <th>Items</th>
         <th>Shipping Details</th>
-        <th>Status</th>
+        <th>Payment Status</th>
+        <th>Completion Status</th>
         <th>Order Date</th>
       </tr>
     </thead>
@@ -155,7 +156,7 @@ min-width:200px;
 ">
 
             <strong>
-              <%= s.fullName || s.firstName || order.customerName || "Guest" %>
+              <%= s.fullName || s.firstName + " " + s.lastName || order.customerName || "Guest" %>
             </strong><br>
 
             <span style="color:#555">
@@ -187,6 +188,7 @@ min-width:200px;
 
         </td>
         <td data-label="Status"><%= order.status %></td>
+        <td data-label="OrderCompleteStatus"><%= order.OrderCompleteStatus %></td>
         <td data-label="Order Date"><%= order.createdAt.toLocaleDateString() %>
           <%= order.createdAt.toLocaleTimeString() %></td>
       </tr>
