@@ -70,7 +70,7 @@ const OrderSchema = new mongoose.Schema({
     address: String,
     state: String,
     city: String,
-    zipCode: String,
+    postalCode: String,
     country: String
   }
 

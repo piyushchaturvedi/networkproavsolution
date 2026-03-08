@@ -16,7 +16,7 @@ import Subscriber from '../models/subscriber.js';
 import path from "path";
 import fs from 'fs';
 import paypal from '@paypal/checkout-server-sdk';
-import { sendAdminOrderNotification, sendCustomerOrderNotification } from "../utils/whatsapp.js";
+import { sendAdminOrderNotification, sendCustomerOrderNotification, sendAdminEmailNotification } from "../utils/whatsapp.js";
 import {
     fileURLToPath
 } from "url";
@@ -1461,6 +1461,7 @@ router.post('/api/orders/:orderID/capture', async (req, res) => {
     order.paypalPayerId = captureData.payer.payer_id;
 
     await order.save();
+    await sendAdminEmailNotification(order);
     await sendAdminOrderNotification(order);
     // await sendCustomerOrderNotification(order);
     req.session.cart = [];
@@ -1474,6 +1475,8 @@ router.post('/api/orders/:orderID/capture', async (req, res) => {
 
     order.status = "failed";
     await order.save();
+    await sendAdminEmailNotification(order);
+
     await sendAdminOrderNotification(order);
     // await sendCustomerOrderNotification(order);
     res.status(400).json({ error: "Payment failed" });

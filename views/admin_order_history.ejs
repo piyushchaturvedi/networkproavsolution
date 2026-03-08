@@ -200,7 +200,8 @@
                 data-email="<%= s.email || order.customerEmail || 'N/A' %>" data-orderid="<%= order._id %>" 
                 data-orderid="<%= order._id %>"
                 data-total="<%= order.totalAmount %>"
-                data-items='<%= JSON.stringify(order.items) %>'>
+                data-items='<%= JSON.stringify(order.items) %>'
+                data-shippingAddress='<%= JSON.stringify(order.shippingAddress) %>'>
                 <i class="fas fa-envelope"></i> Send Email
           </button>
           <% if (order.OrderCompleteStatus !== 'Completed') { %>
@@ -264,6 +265,7 @@
         const orderId = button.getAttribute('data-orderid');
         const total = button.getAttribute('data-total');
         const items = JSON.parse(button.getAttribute('data-items'));
+        const shippingAddress = JSON.parse(button.getAttribute('data-shippingAddress'));
 
         const modalEmailInput = emailModal.querySelector('#modalEmail');
         const modalSubjectInput = emailModal.querySelector('input[name="subject"]');
@@ -280,7 +282,7 @@
         });
 
         // Aapka bataya hua Message Template
-        const fullMessage = `Hello,
+        const fullMessage = `Hello ${shippingAddress?.firstName || 'Customer'} ${shippingAddress?.lastName || ''},
 
 Thank you for choosing NetworkProAVSolution.
 
